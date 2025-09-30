@@ -1,0 +1,25 @@
+name: CI
+on: push
+jobs:
+  test:
+    outputs:
+      DEPS_DIR: ${{ steps.pathname.outputs.dir }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Get code"
+        uses: actions/checkout@v5
+      - name: "Get dependencies dir path"
+        id: "pathname"
+        run: echo "dir=$(npm config get cache)" >> $GITHUB_OUTPUT
+      - name: "Caching dependencies"
+        uses: actions/cache@v4
+        with:
+          path: $DEPS_DIR
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package.lock.json') }}
+          restore-keys: |
+            ${{ runner.os}}-node-
+            ${{ runner.os }}-
+      - name: "Install dependencies"
+        run: npm ci
+      - name: 'Running tests'
+        run: npm test

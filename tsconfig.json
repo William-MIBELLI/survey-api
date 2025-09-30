@@ -2,8 +2,9 @@
   "extends": "@tsconfig/node22/tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "./"
+    "rootDir": "./",
+    "types": ["jest"]
   },
-  "include": ["**/*.ts"],
+  "include": ["**/*.ts", "__tests__/**/*.test.ts"],
   "exclude": ["dist"]
 }

@@ -1,4 +1,4 @@
-
+import resolvers from "#resolvers/index.js";
 import express from "express";
 const app = express();
 
@@ -10,5 +10,5 @@ app.get("/", (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Example app listening on port zgeg ${port}`);
+  console.log(`Example app listening on port 🍆 zgeg ${port}`);
 });
