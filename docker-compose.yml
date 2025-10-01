@@ -1,0 +1,26 @@
+name: Local Compose
+services:
+  backend:
+    build: .
+    ports:
+      - 80:3000
+    depends_on: 
+      db:
+        condition: service_healthy
+        restart: true
+        required: true
+  db:
+    image: postgres
+    restart: always
+    shm_size: 128mb
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_PASSWORD: example
+      POSTGRES_USER: william
+      POSTGRES_DB: survey-db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d survey-db -U william"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
