@@ -1,7 +1,14 @@
-name: Local Compose
+version: "3"
+name: Survey-Gen
 services:
   backend:
-    build: .
+    build: 
+      context: .
+      dockerfile: Dockerfile
+      target: base
+    volumes:
+      - ./src:/app/src
+      - ./nodemon.json:/app/nodemon.json
     ports:
       - 80:3000
     depends_on: 
@@ -9,6 +16,9 @@ services:
         condition: service_healthy
         restart: true
         required: true
+    env_file:
+      - ./.env
+    command: npm run dev
   db:
     image: postgres
     restart: always
@@ -24,3 +34,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
+volumes:
+  nodeModules:
