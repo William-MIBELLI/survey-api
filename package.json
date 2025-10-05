@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "API for SurveyGen",
   "scripts": {
-    "dev": "nodemon -L src/index.ts",
-    "start": "NODE_PATH=./build node --env-file=.env build/src/index.js",
+    "dev": "tsx --watch --env-file=.env src/index.ts",
+    "start": "node --env-file=.env dist/index.js",
     "build": "tsc",
     "type-check": "tsc --noEmit",
     "lint": "eslint .",
@@ -20,6 +20,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "type": "module",
   "imports": {
     "#*": "./src/*"
   },
@@ -28,26 +29,17 @@
   },
   "homepage": "https://github.com/William-MIBELLI/survey-api#readme",
   "dependencies": {
-    "@apollo/server": "^5.0.0",
-    "@as-integrations/express5": "^1.1.2",
-    "@graphql-tools/load-files": "^7.0.1",
-    "@graphql-tools/merge": "^9.1.1",
-    "cors": "^2.8.5",
-    "express": "^5.1.0",
-    "graphql": "^16.11.0"
+    "express": "^5.1.0"
   },
   "devDependencies": {
     "@tsconfig/node22": "^22.0.2",
-    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.6.0",
     "jest": "^30.2.0",
-    "nodemon": "^3.1.10",
     "prettier": "^3.6.2",
     "ts-jest": "^29.4.4",
-    "ts-node": "^10.9.2",
-    "tsconfig-paths": "^4.2.0",
+    "tsx": "^4.20.6",
     "typescript": "^5.9.2"
   }
 }
