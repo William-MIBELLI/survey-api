@@ -4,8 +4,8 @@ import { expressMiddleware } from '@as-integrations/express5';
 import express from 'express';
 import http from 'http';
 import cors from 'cors';
-import resolvers from './resolvers/index';
-import typeDefs from './schemas/index'
+import resolvers from 'resolvers';
+import typeDefs from 'schemas'
 
 interface MyContext {
   token?: string;
@@ -36,7 +36,8 @@ const main = async () => {
   await new Promise<void>((resolve) =>
     httpServer.listen({ port: process.env.PORT }, resolve),
   );
-  console.log(`🚀 Server ready at http://localhostzgeg:${process.env.PORT}/`)
+  
+  console.log(`🚀 Server ready at http://localhost:${process.env.PORT}/`)
 }
 
 main()
