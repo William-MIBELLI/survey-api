@@ -1,18 +1,25 @@
-FROM node:lts-alpine
+FROM node:lts-alpine as base
 
 RUN mkdir /app
 WORKDIR /app
 
 COPY package.json .
-RUN npm i 
-
-RUN apk --update --no-cache add curl
+COPY package-lock.json .
+RUN npm install 
+# COPY . .
+EXPOSE 3000
+# RUN apk --update --no-cache add curl
 
 COPY src src
 COPY tsconfig.json .
 COPY jest.config.js .
 COPY __tests__ __tests__
 COPY .env .env
-EXPOSE 3000
 
-ENTRYPOINT ["npm", "run", "dev"]
+FROM base as production
+
+ENV NODE_PATH=;/build
+
+RUN npm run build
+
+# ENTRYPOINT ["npm", "run", "build"]

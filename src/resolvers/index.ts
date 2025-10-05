@@ -1,8 +1,10 @@
 export default {
   Query: {
-
-  },
-  Mutation: {
-    
+    dummy: () => {
+      return {
+        name: 'pp',
+        age: 36
+      }
+    }
   }
 }
