@@ -36,7 +36,7 @@ const main = async () => {
     }),
   );
   await new Promise<void>((resolve) =>
-    httpServer.listen({ port: process.env.PORT }, resolve),
+    httpServer.listen({ port: process.env.PORT || 3000 }, resolve),
   );
   
   console.log(`🚀 Server ready at http://localhost:${process.env.PORT}/`)

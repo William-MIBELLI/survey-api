@@ -1,0 +1,57 @@
+
+scalar Timestamp
+scalar UUID
+
+type Survey {
+  id: UUID!
+}
+
+type User {
+  id: UUID!
+  email: String!
+  firstname: String
+  lastname: String
+  isPremium: Boolean!
+  createdAt: Timestamp!
+  updatedAt: Timestamp!
+  surveys: [Survey!]!
+}
+
+
+
+type Query {
+  user(id: UUID): User
+  users: [User!]!
+  # userByProperties(args: PropertiesUserInput!): [User!]!
+}
+
+# type Mutation {
+#   createUser(args: CreateUserInput!): User!
+#   updateUser(args: UpdateUserInput!): User!
+#   deleteUser(id: UUID!): DeleteResponse!
+# }
+
+input PropertiesUserInput {
+  id: UUID
+  email: String
+  firstname: String
+  lastname: String
+  isPremium: Boolean
+}
+
+input CreateUserInput {
+  email: String!
+  firstname: String
+  lastname: String
+  isPremium: Boolean!
+  password: String!
+  confirmPassword: String!
+}
+
+input UpdateUserInput {
+  id: UUID!
+  email: String
+  firstname: String
+  lastname: String
+  isPremium: Boolean
+}
