@@ -1,3 +1,4 @@
+import { Pagination } from "generated/graphql";
 import { appDataSource } from "lib/datasource";
 import GenericRepository from "repositories/generic.repo";
 import { DeepPartial, EntityTarget, ObjectLiteral, Repository } from "typeorm";
@@ -12,7 +13,7 @@ export default abstract class GenericService<T extends ObjectLiteral> {
     this.repo = new GenericRepository<T>().getInstance(entity)
   }
 
-  // protected getPagination(pagination?: PaginationInput) {
+  // protected getPagination(pagination?: Pagination) {
   //   const created = pagination?.created ?? new Date(1970, 1, 1);
   //   const limit = pagination?.limit || 20;
   //   const order: Order = pagination?.order || Order.Asc
@@ -31,21 +32,21 @@ export default abstract class GenericService<T extends ObjectLiteral> {
     return finded;
   }
 
-  // //RECUPERER TOUTES LES INSTANCES
-  // public async findAll(pag?: PaginationInput) {
-  //   const { created, limit, order } = this.getPagination(pag);
-  //   const list = await this.repo.find({
-  //     where: {
-  //       createdAt: Raw((alias) => `${alias} >= :created`, { created }),
-  //     } as any,
-  //     order: {
-  //       createdAt: order,
-  //     } as any,
-  //     take: limit,
-  //   });
-
-  //   return list;
-  // }
+  //RECUPERER TOUTES LES INSTANCES
+  public async findAll() {
+    // const { created, limit, order } = this.getPagination(pag);
+    // const list = await this.repo.find({
+    //   where: {
+    //     createdAt: Raw((alias) => `${alias} >= :created`, { created }),
+    //   } as any,
+    //   order: {
+    //     createdAt: order,
+    //   } as any,
+    //   take: limit,
+    // });
+    const list = await this.repo.find()
+    return list;
+  }
 
   //RECUPERER UNE INSTANCE VIA SON ID
   public async findById(id: string) {

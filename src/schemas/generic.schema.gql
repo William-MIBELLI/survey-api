@@ -1,0 +1,16 @@
+
+enum Order {
+  ASC
+  DESC
+}
+
+type DeleteResponse {
+  success: Boolean!
+  Message: String!
+}
+
+type Pagination {
+  order: Order
+  limit: Int
+  cursor: String
+}

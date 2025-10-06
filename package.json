@@ -11,7 +11,8 @@
     "lint:fix": "eslint --fix .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "jest"
+    "test": "jest",
+    "codegen": "graphql-codegen --config codegen.ts"
   },
   "repository": {
     "type": "git",
@@ -36,11 +37,15 @@
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "graphql": "^16.11.0",
+    "graphql-scalars": "^1.24.2",
     "pg": "^8.16.3",
     "reflect-metadata": "^0.2.2",
     "typeorm": "^0.3.27"
   },
   "devDependencies": {
+    "@graphql-codegen/cli": "6.0.0",
+    "@graphql-codegen/typescript": "5.0.2",
+    "@graphql-codegen/typescript-resolvers": "5.1.0",
     "@tsconfig/node22": "^22.0.2",
     "@types/bcrypt": "^6.0.0",
     "@types/cors": "^2.8.19",
