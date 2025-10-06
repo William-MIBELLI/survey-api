@@ -1,3 +1,4 @@
+import "reflect-metadata"
 import { ApolloServer } from '@apollo/server';
 import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
 import { expressMiddleware } from '@as-integrations/express5';
@@ -6,6 +7,7 @@ import http from 'http';
 import cors from 'cors';
 import resolvers from 'resolvers';
 import typeDefs from 'schemas'
+import { appDataSource } from "lib/datasource";
 
 interface MyContext {
   token?: string;
@@ -38,6 +40,12 @@ const main = async () => {
   );
   
   console.log(`🚀 Server ready at http://localhost:${process.env.PORT}/`)
+
+  try {
+    await appDataSource.initialize()
+  } catch (error: any) {
+    console.log('ERROR IN DB INITIALISATION : ', error)
+  }
 }
 
 main()

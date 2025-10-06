@@ -1,4 +1,4 @@
-FROM node:lts-alpine as base
+FROM node:lts-alpine AS base
 
 RUN mkdir /app
 WORKDIR /app
@@ -16,7 +16,7 @@ COPY jest.config.js .
 COPY __tests__ __tests__
 COPY .env .env
 
-FROM base as production
+FROM base AS production
 
 ENV NODE_PATH=;/build
 
