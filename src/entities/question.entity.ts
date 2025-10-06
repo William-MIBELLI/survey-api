@@ -18,15 +18,18 @@ export default class Question {
   @Column({ type: "enum", enum: QuestionType })
   type: QuestionType
 
-  @Column()
+  @Column({ name: "with_args"})
   withArgs: boolean
 
-  @Column({ default: true })
+  @Column({ default: true, name: "is_mandatory" })
   isMandatory: boolean
 
   @Column({ type: "uuid", nullable: true })
   dependsOn?: string
 
-  @ManyToOne(() => Survey, (survey) => survey.questions)
+  @Column()
+  surveyId: string
+
+  @ManyToOne(() => Survey, (survey) => survey.questions, { onDelete: "CASCADE"})
   survey: Survey
 }

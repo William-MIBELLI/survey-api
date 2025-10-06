@@ -1,6 +1,6 @@
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { BeforeInsert, Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import Survey from "./survey.entity";
-
+import bcrypt from "bcrypt"
 
 @Entity()
 export default class User {
@@ -19,6 +19,9 @@ export default class User {
   @Column({ nullable: true })
   lastname?: string;
 
+  @Column({ default: false })
+  isPremium: boolean
+
   @CreateDateColumn({ type: "timestamp"})
   createdAt: Date
 
@@ -27,5 +30,11 @@ export default class User {
 
   @OneToMany(() => Survey, (survey) => survey.owner)
   surveys: Survey[]
+
+  @BeforeInsert()
+  async hashPassword() {
+    const hashedPassword = await bcrypt.hash(this.password, 12)
+    this.password = hashedPassword
+  }
 
 }

@@ -22,7 +22,7 @@ export default class Survey {
   @UpdateDateColumn({ type: "timestamp" })
   updatedAt: Date
 
-  @ManyToOne(() => User, (user) => user.surveys)
+  @ManyToOne(() => User, (user) => user.surveys, { onDelete: "CASCADE"})
   owner: User
 
   @ManyToMany(() => User)
