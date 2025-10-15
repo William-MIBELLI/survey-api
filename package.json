@@ -12,7 +12,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "jest",
-    "codegen": "graphql-codegen --config codegen.ts"
+    "codegen": "graphql-codegen --config codegen.ts",
+    "seed": "docker container exec survey-gen-backend-1 npx ts-node -r tsconfig-paths/register src/utils/seed.utils.ts"
   },
   "repository": {
     "type": "git",
@@ -43,6 +44,7 @@
     "typeorm": "^0.3.27"
   },
   "devDependencies": {
+    "@faker-js/faker": "^10.1.0",
     "@graphql-codegen/cli": "6.0.0",
     "@graphql-codegen/typescript": "5.0.2",
     "@graphql-codegen/typescript-resolvers": "5.1.0",
