@@ -14,7 +14,6 @@ export default abstract class GenericService<T extends ObjectLiteral> {
 
   //CREER UNE INSTANCE DE T
   public async createOne(entity: DeepPartial<T>) {
-    console.log('CREATE ARGS : ', entity)
     const created = await this.repo.save(this.repo.create(entity));
     //ON RECHERCHE AVEC UN FIND POUR RECUPERER LES RELATIONS EN MEME TEMPS
     const finded = await this.repo.findOne({ where: { id: created.id } });
@@ -80,18 +79,17 @@ export default abstract class GenericService<T extends ObjectLiteral> {
       hasNextPage = !!before;
       hasPreviousPage = hasMore;
     } else {
-      hasNextPage = hasMore
-      hasPreviousPage = !!after
+      hasNextPage = hasMore;
+      hasPreviousPage = !!after;
     }
 
     //CONSTRUCTION DU EDGES
-    const edges: Edge<T>[] = list.map(item => {
+    const edges: Edge<T>[] = list.map((item) => {
       return {
         cursor: cursorEncoder({ createdAt: item.createdAt, id: item.id }),
-        node: item
-      }
-    })
-
+        node: item,
+      };
+    });
 
     return {
       edges,
@@ -99,8 +97,7 @@ export default abstract class GenericService<T extends ObjectLiteral> {
       pageInfo: {
         hasNextPage,
         hasPreviousPage,
-        
-      }
+      },
     };
   }
 

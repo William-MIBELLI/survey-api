@@ -8,6 +8,8 @@ import cors from 'cors';
 import resolvers from 'resolvers';
 import typeDefs from 'schemas'
 import { appDataSource } from "lib/datasource";
+import { makeExecutableSchema } from "@graphql-tools/schema";
+import { constraintDirective } from "graphql-constraint-directive"
 
 interface MyContext {
   token?: string;
@@ -16,10 +18,17 @@ const app = express();
 
 const httpServer = http.createServer(app);
 
-const server = new ApolloServer<MyContext>({
+const schema = constraintDirective()(makeExecutableSchema({
   typeDefs,
   resolvers,
+}))
+
+
+
+const server = new ApolloServer<MyContext>({
+  schema,
   plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
+  
 });
 
 const main = async () => {
