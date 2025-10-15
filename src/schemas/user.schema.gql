@@ -12,17 +12,28 @@ type User {
   firstname: String
   lastname: String
   isPremium: Boolean!
-  createdAt: Timestamp!
+  createdAt: Timestamp!     
   updatedAt: Timestamp!
-  surveys: [Survey!]!
+  # surveys: [Survey!]!
 }
 
+type UserEdge {
+  cursor: String!
+  node: User!
+}
+
+
+type UserConnection {
+  totalCount: Int!
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+}
 
 
 type Query {
   user(id: UUID): User
-  users: [User!]!
-  # userByProperties(args: PropertiesUserInput!): [User!]!
+  users(pagination: PaginationInput!): UserConnection!
+  userByProperties(args: PropertiesUserInput!): UserConnection!
 }
 
 # type Mutation {

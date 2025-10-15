@@ -1,3 +1,5 @@
+scalar UUID
+scalar Timestamp
 
 enum Order {
   ASC
@@ -9,8 +11,21 @@ type DeleteResponse {
   Message: String!
 }
 
-type Pagination {
-  order: Order
-  limit: Int
-  cursor: String
+type PageInfo {
+  startCursor: String
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+}
+
+input PaginationInput {
+  first: Int
+  last: Int
+  before: String
+  after: String
+}
+
+type Cursor {
+  createdAt: Timestamp!
+  id: UUID!
 }

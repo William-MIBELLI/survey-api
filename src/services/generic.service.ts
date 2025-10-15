@@ -1,24 +1,16 @@
-import { Pagination } from "generated/graphql";
+import { Cursor, PageInfo, PaginationInput } from "generated/graphql";
+import { Edge, TConnection, TEntity, TReturn } from "interfaces/generic.interface";
 import { appDataSource } from "lib/datasource";
 import GenericRepository from "repositories/generic.repo";
 import { DeepPartial, EntityTarget, ObjectLiteral, Repository } from "typeorm";
-
+import { cursorEncoder, decodeCursor } from "utils/pagination.utils";
 
 export default abstract class GenericService<T extends ObjectLiteral> {
-
-  protected repo: Repository<T>
+  protected repo: Repository<T>;
 
   constructor(entity: EntityTarget<T>) {
-    // this.repo = appDataSource.getRepository(entity)
-    this.repo = new GenericRepository<T>().getInstance(entity)
+    this.repo = new GenericRepository<T>().getInstance(entity);
   }
-
-  // protected getPagination(pagination?: Pagination) {
-  //   const created = pagination?.created ?? new Date(1970, 1, 1);
-  //   const limit = pagination?.limit || 20;
-  //   const order: Order = pagination?.order || Order.Asc
-  //   return { created, limit, order };
-  // }
 
   //CREER UNE INSTANCE DE T
   public async createOne(entity: DeepPartial<T>) {
@@ -33,19 +25,82 @@ export default abstract class GenericService<T extends ObjectLiteral> {
   }
 
   //RECUPERER TOUTES LES INSTANCES
-  public async findAll() {
-    // const { created, limit, order } = this.getPagination(pag);
-    // const list = await this.repo.find({
-    //   where: {
-    //     createdAt: Raw((alias) => `${alias} >= :created`, { created }),
-    //   } as any,
-    //   order: {
-    //     createdAt: order,
-    //   } as any,
-    //   take: limit,
-    // });
-    const list = await this.repo.find()
-    return list;
+  public async findAll(pagination: PaginationInput): Promise<TConnection<T>> {
+    const { first, after, before, last } = pagination;
+
+    //TESTS DE LA PAGINATION
+    if (first && first <= 0) {
+      throw new Error("Argument 'first' must be a positive integer.");
+    }
+    if (last && last <= 0) {
+      throw new Error("Argument 'last' must be a positive integer.");
+    }
+    if (first && last) {
+      throw new Error("Cannot use 'first' and 'last' arguments together.");
+    }
+    if (after && before) {
+      throw new Error("Cannot use 'after' and 'before' arguments together.");
+    }
+
+    //MISE EN PLACE DES PARAMETRE POUR LA QUERY
+    const name = this.repo.metadata.name;
+    const colCreated = `${name}.createdAt`;
+    const colId = `${name}.id`;
+    const order = first ? "ASC" : "DESC";
+    const take = first ?? last ?? 10;
+
+    //CREATION DE LA QUERY
+    const query = this.repo.createQueryBuilder();
+    query.orderBy(colCreated, order);
+    query.addOrderBy(colId, order);
+    if (after) {
+      const { createdAt, id } = decodeCursor(after);
+      query.where(`${colCreated} > :createdAt OR ${colCreated} = :createdAt AND ${colId} > :id`, { createdAt, id });
+    }
+    if (before) {
+      const { createdAt, id } = decodeCursor(before);
+      query.where(`${colCreated} < :createdAt OR ${colCreated} = :createdAt AND ${colId} < :id`, { createdAt, id });
+    }
+    query.take(take + 1);
+
+    //RECUPERATION DES DATAS
+    const list = await query.getMany();
+    const count = await this.repo.count();
+
+    const hasMore = list.length > take;
+    if (hasMore) list.pop();
+
+    //CONSTRUCTION DU PAGEINFO
+    let hasNextPage: boolean;
+    let hasPreviousPage: boolean;
+
+    if (before) {
+      list.reverse();
+      hasNextPage = !!before;
+      hasPreviousPage = hasMore;
+    } else {
+      hasNextPage = hasMore
+      hasPreviousPage = !!after
+    }
+
+    //CONSTRUCTION DU EDGES
+    const edges: Edge<T>[] = list.map(item => {
+      return {
+        cursor: cursorEncoder({ createdAt: item.createdAt, id: item.id }),
+        node: item
+      }
+    })
+
+
+    return {
+      edges,
+      totalCount: count,
+      pageInfo: {
+        hasNextPage,
+        hasPreviousPage,
+        
+      }
+    };
   }
 
   //RECUPERER UNE INSTANCE VIA SON ID
@@ -58,7 +113,6 @@ export default abstract class GenericService<T extends ObjectLiteral> {
 
     return ad;
   }
-
 
   // //RECUPERER VIA PLUSIEURS PROPRIETES
   // public async findByProperties(
@@ -81,7 +135,7 @@ export default abstract class GenericService<T extends ObjectLiteral> {
   // //RECUPERER ENTRE 2 DATES DE CREATION
   // public async findByCreationSlot(data: ByCreationSlotInput): Promise<T[]> {
   //   const { start, end, name, pagination } = data;
-  
+
   //   const startDate = pagination?.created || start
 
   //   const result = await this.repo
@@ -117,4 +171,4 @@ export default abstract class GenericService<T extends ObjectLiteral> {
     }
     return updatedEntity;
   }
-} 
+}
