@@ -3,7 +3,7 @@ import Survey from "./survey.entity";
 import bcrypt from "bcrypt"
 
 @Entity()
-export default class User {
+export default class UserEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -33,8 +33,9 @@ export default class User {
 
   @BeforeInsert()
   async hashPassword() {
-    const hashedPassword = await bcrypt.hash(this.password, 12)
-    this.password = hashedPassword
+    const salt = await bcrypt.genSalt(10);
+    const hash = await bcrypt.hash(this.password, salt);
+    this.password = hash
   }
 
 }

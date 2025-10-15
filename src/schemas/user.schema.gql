@@ -36,11 +36,11 @@ type Query {
   userByProperties(args: PropertiesUserInput!): UserConnection!
 }
 
-# type Mutation {
-#   createUser(args: CreateUserInput!): User!
-#   updateUser(args: UpdateUserInput!): User!
-#   deleteUser(id: UUID!): DeleteResponse!
-# }
+type Mutation {
+  createUser(args: CreateUserInput!): User!
+  updateUser(args: UpdateUserInput!): User!
+  deleteUser(id: UUID!): DeleteResponse!
+}
 
 input PropertiesUserInput {
   id: UUID

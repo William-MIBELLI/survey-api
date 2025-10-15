@@ -14,6 +14,7 @@ export default abstract class GenericService<T extends ObjectLiteral> {
 
   //CREER UNE INSTANCE DE T
   public async createOne(entity: DeepPartial<T>) {
+    console.log('CREATE ARGS : ', entity)
     const created = await this.repo.save(this.repo.create(entity));
     //ON RECHERCHE AVEC UN FIND POUR RECUPERER LES RELATIONS EN MEME TEMPS
     const finded = await this.repo.findOne({ where: { id: created.id } });
@@ -159,7 +160,7 @@ export default abstract class GenericService<T extends ObjectLiteral> {
   }
 
   //UPDATE
-  public async updateOne(id: string, entity: Partial<T>): Promise<T | null> {
+  public async updateOne(id: string, entity: Partial<T>): Promise<T> {
     const updated = await this.repo.update(id, entity);
     if (!updated) {
       throw new Error("Nothing affected.");
