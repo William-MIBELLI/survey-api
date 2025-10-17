@@ -48,18 +48,18 @@ input PropertiesUserInput {
 }
 
 input CreateUserInput {
-  email: String! @constraint(format: "email")
-  firstname: String
-  lastname: String
+  email: String! @constraint(format: "email", maxLength: 255)
+  firstname: String @constraint(pattern: "^[0-9a-zA-Z]*$", maxLength: 255, minLength: 3)
+  lastname: String @constraint(pattern: "^[0-9a-zA-Z]*$", maxLength: 255, minLength: 3)
   isPremium: Boolean!
-  password: String!
+  password: String! @constraint(pattern: "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$", maxLength: 30, minLength: 8)
   confirmPassword: String!
 }
 
 input UpdateUserInput {
   id: UUID!
-  email: String
-  firstname: String
-  lastname: String
+  email: String @constraint(format: "email", maxLength: 255)
+  firstname: String @constraint(pattern: "^[0-9a-zA-Z]*$", maxLength: 255, minLength: 3)
+  lastname: String @constraint(pattern: "^[0-9a-zA-Z]*$", maxLength: 255, minLength: 3)
   isPremium: Boolean
 }

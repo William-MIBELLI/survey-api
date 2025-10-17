@@ -3,11 +3,11 @@ import Survey from "entities/survey.entity";
 import User from "entities/user.entity";
 import { DataSource } from "typeorm";
 
-const { POSTGRES_USER, POSTGRES_DB, POSTGRES_PASSWORD } = process.env
+const { POSTGRES_USER, POSTGRES_DB, POSTGRES_PASSWORD } = process.env;
 
 export const appDataSource = new DataSource({
   type: "postgres",
-  host: "172.21.0.1",
+  host: "postgres",
   port: 5432,
   username: POSTGRES_USER,
   password: POSTGRES_PASSWORD,
@@ -15,4 +15,4 @@ export const appDataSource = new DataSource({
   entities: [User, Survey, Question],
   synchronize: true,
   logging: ["error"],
-})
+});

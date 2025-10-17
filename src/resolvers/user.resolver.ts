@@ -16,6 +16,15 @@ export default {
   },
   Mutation: {
     createUser: async (_: any, { args }: MutationCreateUserArgs): Promise<User> => {
+      const { password, confirmPassword } = args
+      if (password !== confirmPassword) {
+        throw new GraphQLError("Passwords have to match.",{
+          extensions: {
+            code: 'MISS_PASSWORD',
+            field: 'confirmPassword',
+          }
+        })
+      }
       const user = await userService.createOne(args)
       return user
     },

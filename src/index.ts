@@ -10,6 +10,7 @@ import typeDefs from 'schemas'
 import { appDataSource } from "lib/datasource";
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import { constraintDirective } from "graphql-constraint-directive"
+import { formatError } from "utils/error.utils";
 
 interface MyContext {
   token?: string;
@@ -28,7 +29,7 @@ const schema = constraintDirective()(makeExecutableSchema({
 const server = new ApolloServer<MyContext>({
   schema,
   plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
-  
+  // formatError
 });
 
 const main = async () => {
