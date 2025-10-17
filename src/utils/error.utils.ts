@@ -1,18 +1,10 @@
 import { GraphQLFormattedError } from "graphql";
 
-export type ConstraintDirectiveError = {
-  code: string;
-  fieldsName: string;
-  context: {
-    arg: string;
-    value: string;
-  }[]
-}
 
 export const formatError = (error: GraphQLFormattedError) => {
   switch (error.extensions?.code) {
     case "BAD_USER_INPUT":
-      return { ...error, message: "Please check your inputs" }
+      return { ...error, message: "PLEASE CHECK YOUR INPUTS : " + error?.message }
     default:
       return error
       

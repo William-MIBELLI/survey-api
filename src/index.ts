@@ -29,7 +29,8 @@ const schema = constraintDirective()(makeExecutableSchema({
 const server = new ApolloServer<MyContext>({
   schema,
   plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
-  // formatError
+  includeStacktraceInErrorResponses: false,
+  formatError
 });
 
 const main = async () => {
