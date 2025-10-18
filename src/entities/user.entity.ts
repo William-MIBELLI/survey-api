@@ -22,10 +22,10 @@ export default class UserEntity {
   @Column({ default: false })
   isPremium: boolean
 
-  @CreateDateColumn({ type: "timestamp"})
+  @CreateDateColumn()
   createdAt: Date
 
-  @UpdateDateColumn({ type: "timestamp"})
+  @UpdateDateColumn()
   updatedAt: Date
 
   @OneToMany(() => Survey, (survey) => survey.owner)

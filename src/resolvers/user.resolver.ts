@@ -1,5 +1,5 @@
 import User from "entities/user.entity";
-import { CreateUserInput, DeleteResponse, MutationCreateUserArgs, MutationUpdateUserArgs, QueryUsersArgs, UpdateUserInput, UserConnection } from "generated/graphql";
+import { DeleteResponse, MutationCreateUserArgs, MutationUpdateUserArgs, QueryUserByPropertiesArgs, QueryUsersArgs, UpdateUserInput, UserConnection } from "generated/graphql";
 import { GraphQLError } from "graphql";
 import UserService from "services/user.service";
 
@@ -13,6 +13,10 @@ export default {
     users: async (_: any, { pagination }: QueryUsersArgs): Promise<UserConnection> => {
       return await userService.findAll(pagination);
     },
+    userByProperties: async (_: any, { args }: QueryUserByPropertiesArgs): Promise<User[]> => {
+      const users = await userService.findByProperties(args)
+      return []
+    }
   },
   Mutation: {
     createUser: async (_: any, { args }: MutationCreateUserArgs): Promise<User> => {

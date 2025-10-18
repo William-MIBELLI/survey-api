@@ -1,8 +1,7 @@
-import { Cursor, PageInfo, PaginationInput } from "generated/graphql";
-import { Edge, TConnection, TEntity, TReturn } from "interfaces/generic.interface";
-import { appDataSource } from "lib/datasource";
+import {  PaginationInput } from "generated/graphql";
+import { Edge, TConnection, TFilterInput } from "interfaces/generic.interface";
 import GenericRepository from "repositories/generic.repo";
-import { DeepPartial, EntityTarget, ObjectLiteral, Repository } from "typeorm";
+import { DeepPartial, EntityTarget, FindOptionsWhere, ObjectLiteral, Repository } from "typeorm";
 import { cursorEncoder, decodeCursor } from "utils/pagination.utils";
 
 export default abstract class GenericService<T extends ObjectLiteral> {
@@ -112,40 +111,14 @@ export default abstract class GenericService<T extends ObjectLiteral> {
     return ad;
   }
 
-  // //RECUPERER VIA PLUSIEURS PROPRIETES
-  // public async findByProperties(
-  //   fields: FindOptionsWhere<T>,
-  //   pag?: PaginationInput
-  // ): Promise<T[]> {
-  //   const { created, limit, order } = this.getPagination(pag);
-  //   return await this.repo.find({
-  //     where: {
-  //       ...fields,
-  //       createdAt: Raw((alias) => `${alias} >= :created`, { created }),
-  //     } as any,
-  //     take: limit,
-  //     order: {
-  //       createdAt: order,
-  //     } as any,
-  //   });
-  // }
+  //RECUPERER VIA PLUSIEURS PROPRIETES
+  public async findByProperties(
+    fields: TFilterInput<T>,
+  ): Promise<T[]> {
+    console.log("FIELDS DANS SERVICE : ", fields)
+    return []
+  }
 
-  // //RECUPERER ENTRE 2 DATES DE CREATION
-  // public async findByCreationSlot(data: ByCreationSlotInput): Promise<T[]> {
-  //   const { start, end, name, pagination } = data;
-
-  //   const startDate = pagination?.created || start
-
-  //   const result = await this.repo
-  //     .createQueryBuilder(name)
-  //     .where(`${name}.createdAt >= :start`, { start: new Date(startDate) })
-  //     .andWhere(`${name}.createdAt <= :end`, { end: new Date(end) })
-  //     .orderBy(`${name}.createdAt `, pagination?.order || "ASC")
-  //     .limit(pagination?.limit || 20)
-  //     .getMany();
-
-  //   return result;
-  // }
 
   //DELETE
   public async deleteOne(id: string): Promise<boolean> {

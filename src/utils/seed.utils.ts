@@ -28,7 +28,7 @@ const seedDB = async () => {
   console.log("👜 --> CONNECTION DB...")
   try {
     await appDataSource.initialize()
-    // await appDataSource.query('TRUNCATE user CASCADE')
+    await appDataSource.query('TRUNCATE user')
     console.log('🧜 --> SEEDING USERS...')
     await seedUser()
     console.log("🥳 --> SEEDING OK")

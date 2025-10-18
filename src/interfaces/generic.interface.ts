@@ -1,5 +1,5 @@
-import { Cursor } from "generated/graphql";
-import { ObjectLiteral } from "typeorm";
+import { DateFilterInput, IntFilterInput, StringFilterInput } from "generated/graphql";
+import { FindOptionsWhere, ObjectLiteral } from "typeorm";
 
 export interface Edge<T extends ObjectLiteral> {
   cursor: string;
@@ -28,3 +28,7 @@ export interface TReturn<T> {
   list: T[]
   count: number
 }
+
+export type TFilterInput<T> = {
+  [k in keyof FindOptionsWhere<T>]: StringFilterInput | IntFilterInput | DateFilterInput;
+};

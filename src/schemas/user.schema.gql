@@ -1,5 +1,5 @@
-scalar Timestamp
 scalar UUID
+scalar Date
 
 type Survey {
   id: UUID!
@@ -11,8 +11,8 @@ type User {
   firstname: String
   lastname: String
   isPremium: Boolean!
-  createdAt: Timestamp!
-  updatedAt: Timestamp!
+  createdAt: Date!
+  updatedAt: Date!
   # surveys: [Survey!]!
 }
 
@@ -30,7 +30,7 @@ type UserConnection {
 type Query {
   user(id: UUID): User
   users(pagination: PaginationInput!): UserConnection!
-  userByProperties(args: PropertiesUserInput!): UserConnection!
+  userByProperties(args: UserFilterInput!): [User!]!
 }
 
 type Mutation {
@@ -39,12 +39,14 @@ type Mutation {
   deleteUser(id: UUID!): DeleteResponse!
 }
 
-input PropertiesUserInput {
+input UserFilterInput {
   id: UUID
-  email: String
-  firstname: String
-  lastname: String
-  isPremium: Boolean
+  email: StringFilterInput
+  firstname: StringFilterInput
+  lastname: StringFilterInput
+  isPremium: BooleanFilterInput
+  createdAt: DateFilterInput
+  updatedAt: DateFilterInput
 }
 
 input CreateUserInput {
