@@ -1,4 +1,5 @@
-import {  PaginationInput } from "generated/graphql";
+import { BooleanFilterInput, DateFilterInput, IntFilterInput, PaginationInput, StringFilterInput } from "generated/graphql";
+import { GraphQLError } from "graphql";
 import { Edge, TConnection, TFilterInput } from "interfaces/generic.interface";
 import GenericRepository from "repositories/generic.repo";
 import { DeepPartial, EntityTarget, FindOptionsWhere, ObjectLiteral, Repository } from "typeorm";
@@ -100,7 +101,7 @@ export default abstract class GenericService<T extends ObjectLiteral> {
     };
   }
 
-  //RECUPERER UNE INSTANCE VIA SON ID
+  //RECUPERER UNE INSTANCE VIA SON ID&
   public async findById(id: string) {
     const ad = await this.repo.findOne({
       where: {
@@ -112,13 +113,50 @@ export default abstract class GenericService<T extends ObjectLiteral> {
   }
 
   //RECUPERER VIA PLUSIEURS PROPRIETES
-  public async findByProperties(
-    fields: TFilterInput<T>,
-  ): Promise<T[]> {
-    console.log("FIELDS DANS SERVICE : ", fields)
-    return []
+  public async findByProperties(filters: TFilterInput<T>): Promise<T[]> {
+
+    //OPN BOUCLE SUR LES FILTERS
+    Object.entries(filters).forEach(([key, filter]) => {
+
+      //ON RECUPERE LES METADATA DE LA COLONNE CORRESPONDANTE A LA KEY
+      const columnMetatada = this.repo.metadata.columns.find((col) => col.propertyName === key);
+
+      //SI PAS DE COLUMN, ON THROW UNE ERROR
+      if (!columnMetatada) {
+        throw new GraphQLError('NO FIELDS WITH THIS KEY : ' + key, {
+          extensions: {
+            code: "FIELDS_ERROR",
+            fields: key
+          }
+        })
+      }
+      //SELON LE TYPE DE LA COLONNE, ON DEFINIT LE TYPE DE FILTER
+      const { type } = columnMetatada
+      if (type === Number || type === "int" || type === "float") {
+        const nbfilter = filter as IntFilterInput
+        
+      }
+
+      if (type === String || type === "text" || type === "varchar") {
+        const stfilter = filter as StringFilterInput
+      }
+
+      if (type === Boolean || type === "bool" || type === "boolean") {
+        const boolfilter = filter as BooleanFilterInput
+      }
+
+      if (type === Date || type === "date") {
+        const datefilter = filter as DateFilterInput
+      }
+      
+    });
+    console.log(filters);
+    return [];
   }
 
+  private createQueryFilter(filters : IntFilterInput) {
+
+  }
 
   //DELETE
   public async deleteOne(id: string): Promise<boolean> {

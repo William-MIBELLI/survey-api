@@ -1,4 +1,4 @@
-import { DateFilterInput, IntFilterInput, StringFilterInput } from "generated/graphql";
+import { BooleanFilterInput, DateFilterInput, IntFilterInput, StringFilterInput } from "generated/graphql";
 import { FindOptionsWhere, ObjectLiteral } from "typeorm";
 
 export interface Edge<T extends ObjectLiteral> {
@@ -6,29 +6,30 @@ export interface Edge<T extends ObjectLiteral> {
   node: T;
 }
 
-
 export interface TConnection<T extends ObjectLiteral> {
   totalCount: number;
-  edges: Edge<T>[]
+  edges: Edge<T>[];
   pageInfo: {
     startCursor?: string;
     endCursor?: string;
-    hasNextPage: boolean
-    hasPreviousPage: boolean
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
   };
 }
 
 export interface TEntity extends ObjectLiteral {
-  id: string
-  createdAt: Date
-  updatedAt: Date
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface TReturn<T> {
-  list: T[]
-  count: number
+  list: T[];
+  count: number;
 }
 
+export type TFilterType = StringFilterInput | IntFilterInput | DateFilterInput | BooleanFilterInput;
+
 export type TFilterInput<T> = {
-  [k in keyof FindOptionsWhere<T>]: StringFilterInput | IntFilterInput | DateFilterInput;
+  [k in keyof FindOptionsWhere<T>]: TFilterType;
 };
