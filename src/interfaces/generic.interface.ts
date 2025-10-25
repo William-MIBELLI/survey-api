@@ -33,3 +33,23 @@ export type TFilterType = StringFilterInput | IntFilterInput | DateFilterInput |
 export type TFilterInput<T> = {
   [k in keyof FindOptionsWhere<T>]: TFilterType;
 };
+
+export const operatorMap = {
+  equals: '=',
+  not: '!=',
+  in: 'IN',
+  notIn: 'NOT IN',
+  lt: '<',
+  lte: '<=',
+  gt: '>',
+  gte: '>=',
+} as const;
+
+export type TGenericOperator = keyof typeof operatorMap
+
+export type TGenericFilter<T> = {
+  [K in TGenericOperator]?: K extends "in" | "notIn" ? T[] : T
+}
+
+
+

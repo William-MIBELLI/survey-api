@@ -1,10 +1,7 @@
 import {
-  BooleanFilterInput,
-  DateFilterInput,
-  IntFilterInput,
   StringFilterInput,
 } from "generated/graphql";
-import { TFilterInput, TFilterType } from "interfaces/generic.interface";
+import { operatorMap, TFilterInput, TFilterType, TGenericOperator,  } from "interfaces/generic.interface";
 import GenericRepository from "repositories/generic.repo";
 import { EntityTarget, ObjectLiteral, SelectQueryBuilder } from "typeorm";
 
@@ -13,6 +10,7 @@ type TFilterHandler<T extends ObjectLiteral> = (
   filterValue: TFilterType,
   key: keyof T,
 ) => void;
+
 
 export default abstract class GenericQUeryBuilder<T extends ObjectLiteral> {
   protected qb: SelectQueryBuilder<T>;
@@ -30,7 +28,7 @@ export default abstract class GenericQUeryBuilder<T extends ObjectLiteral> {
     Object.entries(filters).forEach(([key, value]) => {
       if (this.filterHandlers.has(key)) {
         const handler = this.filterHandlers.get(key);
-        if (handler && value) {
+        if (handler && value !== null && value !== undefined) {
           handler(this.qb, value, key);
         }
       }
@@ -39,32 +37,42 @@ export default abstract class GenericQUeryBuilder<T extends ObjectLiteral> {
   }
 
   private initialiseGenericFilters() {
-    this.filterHandlers.set("createdAt", this.applyDateFilter);
-    this.filterHandlers.set("updatedAt", this.applyDateFilter);
+    this.filterHandlers.set("createdAt", this.applyComparisonFilter);
+    this.filterHandlers.set("updatedAt", this.applyComparisonFilter);
+    this.filterHandlers.set("id", this.applyComparisonFilter)
   }
 
-  protected applyDateFilter = (
+
+  protected applyComparisonFilter: TFilterHandler<T> = (
     qb: SelectQueryBuilder<T>,
-    filter: DateFilterInput,
+    filter: TFilterType,
     key: keyof T,
   ) => {
+
     const column = `${this.tableName}.${String(key)}`;
 
-    if (filter.equals) {
-      qb.andWhere(`${column} = :date`, { date: filter.equals });
-    }
-    if (filter.gt) {
-      qb.andWhere(`${column} > :date`, { date: filter.gt });
-    }
-    if (filter.gte) {
-      qb.andWhere(`${column} >= :date`, { date: filter.gte });
-    }
-    if (filter.lt) {
-      qb.andWhere(`${column} < :date`, { date: filter.gt });
-    }
-    if (filter.lte) {
-      qb.andWhere(`${column} <= :date`, { date: filter.lte });
-    }
+    Object.entries(filter).forEach(([k, value]) => {
+
+      if (value === undefined || value === null) {
+        return
+      }
+
+      const paramName = `${String(key)}_${k}`
+      const isGenericOperation = Object.hasOwn(operatorMap, k)
+      
+      if (isGenericOperation) {
+        const type = k as TGenericOperator
+        const operatorSign = operatorMap[type]
+        if (type === "in" || type === "notIn") {
+          qb.andWhere(`${column} ${operatorSign} :(${paramName})`, { [paramName]: value})
+          
+        } else {
+          qb.andWhere(`${column} ${operatorSign} :${paramName}`, { [paramName]: value})
+
+        }
+      }
+
+    })
   };
 
   protected applyStringFilter = (
@@ -72,29 +80,18 @@ export default abstract class GenericQUeryBuilder<T extends ObjectLiteral> {
     filter: StringFilterInput,
     key: keyof T,
   ) => {
-    
     const column = `${this.tableName}.${String(key)}`;
 
+    this.applyComparisonFilter(qb, filter, key)
+
     if (filter.contains) {
-      qb.andWhere(`${column} LIKE :string`, { string: `%${filter.contains}%`})
+      qb.andWhere(`${column} LIKE :contains`, { contains: `%${filter.contains}%` });
     }
     if (filter.endsWith) {
-      qb.andWhere(`${column} LIKE :string`, { string: `%${filter.endsWith}`})
-    }
-    if (filter.equals) {
-      qb.andWhere(`${column} = :string`, { string: filter.equals})
-    }
-    if (filter.in) {
-      qb.andWhere(`${column} IN (:string)`,  { string: `${filter.in.join(',')}`})
-    }
-    if (filter.notIn) {
-      qb.andWhere(`${column} NOT IN (:string)`, { string: `${filter.notIn.join(',')}`})
-    }
-    if (filter.not) {
-      qb.andWhere(`${column} NOT (:string)`, { string: filter.not})
+      qb.andWhere(`${column} LIKE :endsWith`, { endsWith: `%${filter.endsWith}` });
     }
     if (filter.startsWith) {
-      qb.andWhere(`${column} LIKE :string`, { string: `${filter.startsWith}%`})
+      qb.andWhere(`${column} LIKE :startsWith`, { startsWith: `${filter.startsWith}%` });
     }
   };
 }

@@ -38,7 +38,7 @@ input BooleanFilterInput{
 input IdFilterInput {
   equals: ID
   in: [ID!]
-  not: IdFilterInput
+  not: ID
   notIn: [ID!]
 }
 
@@ -49,7 +49,7 @@ input IntFilterInput {
     in: [Int!]
     lt: Int
     lte: Int
-    not: IntFilterInput
+    not: Int
     notIn: [Int!]
 }
 
