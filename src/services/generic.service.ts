@@ -1,3 +1,4 @@
+import UserQueryBuilder from "builders/user.builder";
 import { BooleanFilterInput, DateFilterInput, IntFilterInput, PaginationInput, StringFilterInput } from "generated/graphql";
 import { GraphQLError } from "graphql";
 import { Edge, TConnection, TFilterInput } from "interfaces/generic.interface";
@@ -26,6 +27,8 @@ export default abstract class GenericService<T extends ObjectLiteral> {
 
   //RECUPERER TOUTES LES INSTANCES
   public async findAll(pagination: PaginationInput): Promise<TConnection<T>> {
+
+    const filterBuilder = new UserQueryBuilder()
     const { first, after, before, last } = pagination;
 
     //TESTS DE LA PAGINATION

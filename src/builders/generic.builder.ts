@@ -3,9 +3,9 @@ import {
 } from "generated/graphql";
 import { operatorMap, TFilterInput, TFilterType, TGenericOperator,  } from "interfaces/generic.interface";
 import GenericRepository from "repositories/generic.repo";
-import { EntityTarget, ObjectLiteral, SelectQueryBuilder } from "typeorm";
+import { EntityMetadata, EntityTarget, ObjectLiteral, SelectQueryBuilder } from "typeorm";
 
-type TFilterHandler<T extends ObjectLiteral> = (
+export type TFilterHandler<T extends ObjectLiteral> = (
   qb: SelectQueryBuilder<T>,
   filterValue: TFilterType,
   key: keyof T,
@@ -16,12 +16,13 @@ export default abstract class GenericQUeryBuilder<T extends ObjectLiteral> {
   protected qb: SelectQueryBuilder<T>;
   protected abstract filterHandlers: Map<string, TFilterHandler<T>>;
   protected tableName: string;
+  protected metadata: EntityMetadata
 
   constructor(entity: EntityTarget<T>) {
     const repo = new GenericRepository<T>().getInstance(entity);
     this.tableName = repo.metadata.tableName;
     this.qb = repo.createQueryBuilder(this.tableName);
-    this.initialiseGenericFilters();
+    this.metadata = repo.metadata
   }
 
   public applyFilters(filters: TFilterInput<T>): this {
@@ -36,11 +37,7 @@ export default abstract class GenericQUeryBuilder<T extends ObjectLiteral> {
     return this;
   }
 
-  private initialiseGenericFilters() {
-    this.filterHandlers.set("createdAt", this.applyComparisonFilter);
-    this.filterHandlers.set("updatedAt", this.applyComparisonFilter);
-    this.filterHandlers.set("id", this.applyComparisonFilter)
-  }
+  protected abstract initialiseFilters() : void
 
 
   protected applyComparisonFilter: TFilterHandler<T> = (
@@ -77,21 +74,26 @@ export default abstract class GenericQUeryBuilder<T extends ObjectLiteral> {
 
   protected applyStringFilter = (
     qb: SelectQueryBuilder<T>,
-    filter: StringFilterInput,
+    filter: TFilterType,
     key: keyof T,
   ) => {
-    const column = `${this.tableName}.${String(key)}`;
+    if (typeof filter !== "object" || filter === null) {
+      return
+    }
 
     this.applyComparisonFilter(qb, filter, key)
+    
+    const column = `${this.tableName}.${String(key)}`;
+    const stringFilter = filter as StringFilterInput
 
-    if (filter.contains) {
-      qb.andWhere(`${column} LIKE :contains`, { contains: `%${filter.contains}%` });
+    if (stringFilter.contains) {
+      qb.andWhere(`${column} LIKE :contains`, { contains: `%${stringFilter.contains}%` });
     }
-    if (filter.endsWith) {
-      qb.andWhere(`${column} LIKE :endsWith`, { endsWith: `%${filter.endsWith}` });
+    if (stringFilter.endsWith) {
+      qb.andWhere(`${column} LIKE :endsWith`, { endsWith: `%${stringFilter.endsWith}` });
     }
-    if (filter.startsWith) {
-      qb.andWhere(`${column} LIKE :startsWith`, { startsWith: `${filter.startsWith}%` });
+    if (stringFilter.startsWith) {
+      qb.andWhere(`${column} LIKE :startsWith`, { startsWith: `${stringFilter.startsWith}%` });
     }
   };
 }
