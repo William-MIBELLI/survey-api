@@ -24,8 +24,6 @@ const schema = constraintDirective()(makeExecutableSchema({
   resolvers,
 }))
 
-
-
 const server = new ApolloServer<MyContext>({
   schema,
   plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
@@ -34,6 +32,13 @@ const server = new ApolloServer<MyContext>({
 });
 
 const main = async () => {
+
+  try {
+    await appDataSource.initialize()
+    console.log("💪 DB Initialized.")
+  } catch (error: any) {
+    console.log('ERROR IN DB INITIALISATION : ', error)
+  }
 
   await server.start();
   
@@ -52,11 +57,6 @@ const main = async () => {
   
   console.log(`🚀 Server ready at http://localhost:${process.env.PORT}/`)
 
-  try {
-    await appDataSource.initialize()
-  } catch (error: any) {
-    console.log('ERROR IN DB INITIALISATION : ', error)
-  }
 }
 
 main()

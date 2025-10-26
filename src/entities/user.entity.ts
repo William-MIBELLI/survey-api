@@ -30,10 +30,10 @@ export default class UserEntity {
   @Column({ default: false, type: "boolean" })
   isPremium: boolean;
 
-  @CreateDateColumn({ type: "date" })
+  @CreateDateColumn({ type: "timestamptz", precision: 3})
   createdAt: Date;
 
-  @UpdateDateColumn({ type: "date" })
+  @UpdateDateColumn({ type: "timestamptz", precision: 3})
   updatedAt: Date;
 
   @OneToMany(() => Survey, (survey) => survey.owner)

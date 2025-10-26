@@ -1,7 +1,9 @@
 import UserEntity from "entities/user.entity";
 import GenericQUeryBuilder, { TFilterHandler } from "./generic.builder";
+import { EntityTarget } from "typeorm";
 
 export default class UserQueryBuilder extends GenericQUeryBuilder<UserEntity> {
+
   protected filterHandlers: Map<string, TFilterHandler<UserEntity>> = new Map();
 
   constructor() {
