@@ -1,16 +1,15 @@
 import GenericQueryBuilder from "builders/generic.builder";
-import { PaginationInput, QueryUserArgs, QueryUsersArgs } from "generated/graphql";
+import { PaginationInput} from "generated/graphql";
 import { Edge, TConnection, TFilterInput, TFindArgs } from "interfaces/generic.interface";
-import GenericRepository from "repositories/generic.repo";
-import { DeepPartial, EntityTarget, ObjectLiteral, Repository } from "typeorm";
+import { DeepPartial, ObjectLiteral, Repository } from "typeorm";
 import { cursorEncoder } from "utils/pagination.utils";
 
 export default abstract class GenericService<T extends ObjectLiteral> {
-  public repo: Repository<T>;
-  protected abstract filterBuilder: GenericQueryBuilder<T>;
 
-  constructor(entity: EntityTarget<T>) {
-    this.repo = new GenericRepository<T>().getInstance(entity);
+  protected filterBuilder: GenericQueryBuilder<T>;
+
+  constructor(protected repo: Repository<T>, fb: GenericQueryBuilder<T>) {
+    this.filterBuilder = fb
   }
 
   //CREER UNE INSTANCE DE T
@@ -43,7 +42,7 @@ export default abstract class GenericService<T extends ObjectLiteral> {
 
     const connection = this.buildConnection(list, count, pagination);
 
-    return connection
+    return connection;
   }
 
   protected buildConnection(
@@ -51,7 +50,6 @@ export default abstract class GenericService<T extends ObjectLiteral> {
     count: number,
     pagination?: PaginationInput,
   ): TConnection<T> {
-
     const { first, after, before, last } = pagination || {};
 
     const take = first ?? last ?? 10;
