@@ -1,22 +1,55 @@
-import { QueryUsersArgs, UserConnection } from "generated/graphql";
+import User from "entities/user.entity";
+import {
+  DeleteResponse,
+  MutationCreateUserArgs,
+  MutationUpdateUserArgs,
+  QueryUsersArgs,
+  UpdateUserInput,
+  UserConnection,
+} from "generated/graphql";
 import { GraphQLError } from "graphql";
 import UserService from "services/user.service";
-
-const userService = UserService.getInstance();
 
 export default {
   Query: {
     user: async (_: any, { id }: { id: string }) => {
-      return await userService.findById(id);
+      return await UserService.getInstance().findById(id);
     },
-    users: async (_: any, { pagination }: QueryUsersArgs): Promise<UserConnection> => {
-
-      // const{ first } = pagination
-
-      // if (first && first < 0) throw new GraphQLError("First can't be negative.", {});
-
-      const list = await userService.findAll(pagination)
-      return list
+    users: async (_: any, { args }: QueryUsersArgs): Promise<UserConnection> => {
+      const { filters, pagination } = args
+      console.log("ARGS DANS RESOLVER : ", args)
+      return await UserService.getInstance().findAll({...filters, pagination});
+    },
+    // userByProperties: async (_: any, { args }: QueryUserByPropertiesArgs): Promise<User[]> => {
+    //   const users = await UserService.getInstance().findByProperties(args.filters!);
+    //   return users;
+    // },
+  },
+  Mutation: {
+    createUser: async (_: any, { args }: MutationCreateUserArgs): Promise<User> => {
+      const { password, confirmPassword } = args;
+      if (password !== confirmPassword) {
+        throw new GraphQLError("Passwords have to match.", {
+          extensions: {
+            code: "MISS_PASSWORD",
+            field: "confirmPassword",
+          },
+        });
+      }
+      const user = await UserService.getInstance().createOne(args);
+      return user;
+    },
+    updateUser: async (_: any, { args }: MutationUpdateUserArgs): Promise<User> => {
+      const { id, ...rest } = args;
+      return await UserService.getInstance().updateOne(id, rest);
+    },
+    deleteUser: async (_: any, { id }: { id: string }): Promise<DeleteResponse> => {
+      const isDeleted = await UserService.getInstance().deleteOne(id);
+      const response: DeleteResponse = {
+        success: isDeleted,
+        Message: isDeleted ? "User successfully deleted." : "Deletion failed.",
+      };
+      return response;
     },
   },
 };
