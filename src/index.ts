@@ -2,7 +2,7 @@ import "reflect-metadata";
 import { ApolloServer } from "@apollo/server";
 import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
 import { expressMiddleware } from "@as-integrations/express5";
-import express from "express";
+import express, { Request, Response } from "express";
 import http from "http";
 import cors from "cors";
 import resolvers from "resolvers";
@@ -16,9 +16,13 @@ import UserService from "services/user.service";
 import UserQueryBuilder from "builders/user.builder";
 import AuthService from "services/auth.service";
 import GenericQueryBuilder from "builders/generic.builder";
+import { User } from "generated/graphql";
+import Cookies from "cookies"
 
 export interface MyContext {
-  token?: string | string[];
+  req: Request
+  res: Response
+  user?: User | null;
   services: {
     userService: UserService;
     authService: AuthService;
@@ -64,10 +68,19 @@ const main = async () => {
     express.json(),
 
     expressMiddleware(server, {
-      context: async ({ req }): Promise<MyContext> => ({
-        token: req.headers.token,
-        services: { userService, authService },
-      }),
+      context: async ({ req, res }): Promise<MyContext> => {
+        let user: User | null = null
+        const cookie = new Cookies(req, res)
+        const token = cookie.get("token")
+        if (token) {
+          user = await authService.verifyTokenValidity(token)
+        }
+        return {
+          req, res,
+          user,
+          services: { userService, authService },
+        }
+      },
     }),
   );
   await new Promise<void>((resolve) =>

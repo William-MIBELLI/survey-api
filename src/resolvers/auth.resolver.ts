@@ -1,6 +1,11 @@
-import { AuthPayload, MutationSigninArgs, MutationSignupArgs } from "generated/graphql";
+import Cookies from "cookies";
+import {
+  DeleteResponse,
+  MutationSigninArgs,
+  MutationSignupArgs,
+  User,
+} from "generated/graphql";
 import { MyContext } from "index";
-import AuthService from "services/auth.service";
 
 const resolver = {
   Query: {},
@@ -8,18 +13,32 @@ const resolver = {
     signup: async (
       _: any,
       { args }: MutationSignupArgs,
-      { services: { authService } }: MyContext,
-    ): Promise<AuthPayload> => {
+      { services: { authService }, req, res }: MyContext,
+    ): Promise<User> => {
       const payload = await authService.signup(args);
-      return payload;
+      new Cookies(req, res).set("token", payload.token, { httpOnly: true });
+      return payload.user;
     },
     signin: async (
       _: any,
       { args }: MutationSigninArgs,
-      { services: { authService } }: MyContext,
-    ): Promise<AuthPayload> => {
+      { services: { authService }, req, res }: MyContext,
+    ): Promise<User> => {
       const payload = await authService.signin(args);
-      return payload;
+      new Cookies(req, res).set("token", payload.token, { httpOnly: true });
+      return payload.user;
+    },
+
+    signout: async (
+      _: any,
+      args: any,
+      { req, res }: MyContext,
+    ): Promise<DeleteResponse> => {
+      new Cookies(req, res).set("token", null);
+      return {
+        Message: "You've been successfully logged out.",
+        success: true,
+      };
     },
   },
 };

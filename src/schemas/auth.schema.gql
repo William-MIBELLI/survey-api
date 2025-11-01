@@ -1,13 +1,8 @@
 
-
-type AuthPayload {
-  token: String!
-  user: User!
-}
-
 type Mutation {
-  signup(args: SignupInput!): AuthPayload!
-  signin(args: SigninInput!): AuthPayload!
+  signup(args: SignupInput!): User!
+  signin(args: SigninInput!): User!
+  signout: DeleteResponse!
 }
 
 input SignupInput {

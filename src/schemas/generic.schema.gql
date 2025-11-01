@@ -26,10 +26,6 @@ input PaginationInput {
   after: String
 }
 
-# type Cursor {
-#   createdAt: Date!
-#   id: UUID!
-# }
 
 input BooleanFilterInput{
   equals: Boolean
@@ -58,29 +54,16 @@ input StringFilterInput {
   endsWith: String
   equals: String
   in: [String!]
-  # mode: QueryModeg
   not: String
   notIn: [String!]
   startsWith: String
 }
 
-# input NestedStringFilterInput {
-#   contains: String
-#   endsWith: String
-#   equals: String
-#   in: [String!]
-#   not: NestedStringFilterInput
-#   notIn: [String!]
-#   startsWith: String
-# }
 
 input DateFilterInput {
     equals: Date
     gt: Date
     gte: Date
-    # in: [Date!]
     lt: Date
     lte: Date
-    # not: DateFilterInput
-    # notIn: [Date!]
 }

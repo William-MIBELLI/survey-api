@@ -1,13 +1,16 @@
-import { AuthPayload, SigninInput, SignupInput } from "generated/graphql";
+import { SigninInput, SignupInput, User } from "generated/graphql";
 import { GraphQLError } from "graphql";
 import UserService from "./user.service";
 import jose from "jose";
 import argon2 from "argon2";
 
+type AuthPayload = {
+  token: string;
+  user: User;
+};
+
 export default class AuthService {
-
   public constructor(private userService: UserService) {}
-
 
   public async signup(args: SignupInput): Promise<AuthPayload> {
     const { password, confirmPassword } = args;
@@ -20,7 +23,7 @@ export default class AuthService {
       });
     }
     const createdUser = await this.userService.createOne(args);
-    const jwt = await this.createJWT(createdUser.email, createdUser.isPremium);
+    const jwt = await this.createJWT(createdUser.id);
     return {
       token: jwt,
       user: createdUser,
@@ -34,9 +37,8 @@ export default class AuthService {
       },
     });
 
-    const user = await this.userService.findUserForSignin(args)
-    
- 
+    const user = await this.userService.findUserForSignin(args);
+
     if (!user) {
       throw error;
     }
@@ -45,22 +47,32 @@ export default class AuthService {
     if (!isValidPassword) {
       throw error;
     }
-    const { email, isPremium } = user;
-    const jwt = await this.createJWT(email, isPremium);
+    const { id } = user;
+    const jwt = await this.createJWT(id);
     return {
       user,
       token: jwt,
     };
   }
 
-  protected async createJWT(email: string, isPremium: boolean): Promise<string> {
+  protected async createJWT(id: string): Promise<string> {
     const secret = new TextEncoder().encode(process.env.SECRET_JWT!);
-    const token = await new jose.SignJWT({ email, isPremium })
-      .setProtectedHeader({ alg: "HS256" })
+    const token = await new jose.SignJWT({ id })
+      .setProtectedHeader({ alg: "HS256", typ: "jwt" })
       .setExpirationTime("1d")
       .sign(secret);
     return token;
   }
 
-  public async verifyJWT() {}
+  public async verifyTokenValidity(token: string): Promise<User | null> {
+    const secret = new TextEncoder().encode(process.env.SECRET_JWT!);
+    try {
+      const verify = await jose.jwtVerify<{ id: string }>(token, secret, {});
+      const user = await this.userService.findById(verify.payload.id);
+      return user;
+    } catch (error: any) {
+      console.log("ERROR WHILE DECODING JWT : ", error?.message);
+      return null;
+    }
+  }
 }
