@@ -3,7 +3,6 @@ import GenericQUeryBuilder, { TFilterHandler } from "./generic.builder";
 import { EntityTarget } from "typeorm";
 
 export default class UserQueryBuilder extends GenericQUeryBuilder<UserEntity> {
-
   protected filterHandlers: Map<string, TFilterHandler<UserEntity>> = new Map();
 
   constructor() {
@@ -13,13 +12,11 @@ export default class UserQueryBuilder extends GenericQUeryBuilder<UserEntity> {
 
   protected initialiseFilters() {
     this.metadata.columns.forEach((column) => {
-      
       if (column.type === String || column.type === "varchar" || column.type === "text") {
         this.filterHandlers.set(column.propertyName, this.applyStringFilter);
       } else {
         this.filterHandlers.set(column.propertyName, this.applyComparisonFilter);
       }
     });
-
   }
 }

@@ -8,7 +8,7 @@ import {
   UpdateDateColumn,
 } from "typeorm";
 import Survey from "./survey.entity";
-import argon2 from "argon2"
+import argon2 from "argon2";
 
 @Entity()
 export default class UserEntity {
@@ -30,10 +30,10 @@ export default class UserEntity {
   @Column({ default: false, type: "boolean" })
   isPremium: boolean;
 
-  @CreateDateColumn({ type: "timestamptz", precision: 3})
+  @CreateDateColumn({ type: "timestamptz", precision: 3 })
   createdAt: Date;
 
-  @UpdateDateColumn({ type: "timestamptz", precision: 3})
+  @UpdateDateColumn({ type: "timestamptz", precision: 3 })
   updatedAt: Date;
 
   @OneToMany(() => Survey, (survey) => survey.owner)
@@ -42,8 +42,8 @@ export default class UserEntity {
   @BeforeInsert()
   async hashPassword() {
     const hash = await argon2.hash(this.password, {
-      type: argon2.argon2id
-    })
+      type: argon2.argon2id,
+    });
     this.password = hash;
   }
 }

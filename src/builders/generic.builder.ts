@@ -132,10 +132,13 @@ export default abstract class GenericQueryBuilder<T extends ObjectLiteral> {
     const { tableName } = this.metadata;
     const colCreated = `${tableName}.createdAt`;
     const colId = `${tableName}.id`;
-    const order = first ? "ASC" : "DESC";
+    const isPaginationBackwards = !!last || !!before
+
+    const order = isPaginationBackwards ? "DESC" : "ASC"
+    const operator = isPaginationBackwards ? "<" : ">";
+    const cursor = isPaginationBackwards ? before : after;
+    
     const take = first ?? last ?? 10;
-    const operator = before ? "<" : ">";
-    const cursor = before ? before : after ? after : undefined;
 
     this.qb.orderBy(colCreated, order);
     this.qb.addOrderBy(colId, order);
@@ -143,7 +146,7 @@ export default abstract class GenericQueryBuilder<T extends ObjectLiteral> {
     if (cursor) {
 
       const { createdAt, id } = decodeCursor(cursor);
-      
+
       this.qb.andWhere(
         `(${colCreated} ${operator} :pag_createdAt::timestamptz OR (${colCreated} = :pag_createdAt::timestamptz AND ${colId} ${operator} :pag_id::uuid))`,
         { pag_createdAt: createdAt, pag_id: id },

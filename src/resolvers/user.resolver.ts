@@ -3,7 +3,6 @@ import {
   DeleteResponse,
   MutationCreateUserArgs,
   MutationUpdateUserArgs,
-  QueryUserByPropertiesArgs,
   QueryUsersArgs,
   UpdateUserInput,
   UserConnection,
@@ -16,13 +15,15 @@ export default {
     user: async (_: any, { id }: { id: string }) => {
       return await UserService.getInstance().findById(id);
     },
-    users: async (_: any, { pagination }: QueryUsersArgs): Promise<UserConnection> => {
-      return await UserService.getInstance().findAll(pagination);
+    users: async (_: any, { args }: QueryUsersArgs): Promise<UserConnection> => {
+      const { filters, pagination } = args
+      console.log("ARGS DANS RESOLVER : ", args)
+      return await UserService.getInstance().findAll({...filters, pagination});
     },
-    userByProperties: async (_: any, { args }: QueryUserByPropertiesArgs): Promise<User[]> => {
-      const users = await UserService.getInstance().findByProperties(args);
-      return users;
-    },
+    // userByProperties: async (_: any, { args }: QueryUserByPropertiesArgs): Promise<User[]> => {
+    //   const users = await UserService.getInstance().findByProperties(args.filters!);
+    //   return users;
+    // },
   },
   Mutation: {
     createUser: async (_: any, { args }: MutationCreateUserArgs): Promise<User> => {

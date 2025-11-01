@@ -29,8 +29,9 @@ type UserConnection {
 
 type Query {
   user(id: UUID): User
-  users(pagination: PaginationInput!): UserConnection!
-  userByProperties(args: UserFilterInput!): [User!]!
+  users(args: UserFilterInput!): UserConnection!
+  # users(pagination: PaginationInput!): UserConnection!
+  # userByProperties(args: UserFilterInput!): [User!]!
 }
 
 type Mutation {
@@ -39,7 +40,7 @@ type Mutation {
   deleteUser(id: UUID!): DeleteResponse!
 }
 
-input UserFilterInput {
+input UserFilter {
   id: UUID
   email: StringFilterInput
   firstname: StringFilterInput
@@ -49,12 +50,22 @@ input UserFilterInput {
   updatedAt: DateFilterInput
 }
 
+input UserFilterInput {
+  filters: UserFilter
+  pagination: PaginationInput
+}
+
 input CreateUserInput {
   email: String! @constraint(format: "email", maxLength: 255)
   firstname: String @constraint(pattern: "^[0-9a-zA-Z]*$", maxLength: 255, minLength: 3)
   lastname: String @constraint(pattern: "^[0-9a-zA-Z]*$", maxLength: 255, minLength: 3)
   isPremium: Boolean!
-  password: String! @constraint(pattern: "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$", maxLength: 30, minLength: 8)
+  password: String!
+    @constraint(
+      pattern: "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$"
+      maxLength: 30
+      minLength: 8
+    )
   confirmPassword: String!
 }
 

@@ -1,4 +1,10 @@
-import { BooleanFilterInput, DateFilterInput, IntFilterInput, StringFilterInput } from "generated/graphql";
+import {
+  BooleanFilterInput,
+  DateFilterInput,
+  IntFilterInput,
+  PaginationInput,
+  StringFilterInput,
+} from "generated/graphql";
 import { FindOptionsWhere, ObjectLiteral } from "typeorm";
 
 export interface Edge<T extends ObjectLiteral> {
@@ -17,17 +23,6 @@ export interface TConnection<T extends ObjectLiteral> {
   };
 }
 
-export interface TEntity extends ObjectLiteral {
-  id: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface TReturn<T> {
-  list: T[];
-  count: number;
-}
-
 export type TFilterType = StringFilterInput | IntFilterInput | DateFilterInput | BooleanFilterInput;
 
 export type TFilterInput<T> = {
@@ -35,21 +30,23 @@ export type TFilterInput<T> = {
 };
 
 export const operatorMap = {
-  equals: '=',
-  not: '!=',
-  in: 'IN',
-  notIn: 'NOT IN',
-  lt: '<',
-  lte: '<=',
-  gt: '>',
-  gte: '>=',
+  equals: "=",
+  not: "!=",
+  in: "IN",
+  notIn: "NOT IN",
+  lt: "<",
+  lte: "<=",
+  gt: ">",
+  gte: ">=",
 } as const;
 
-export type TGenericOperator = keyof typeof operatorMap
+export type TGenericOperator = keyof typeof operatorMap;
 
 export type TGenericFilter<T> = {
-  [K in TGenericOperator]?: K extends "in" | "notIn" ? T[] : T
-}
+  [K in TGenericOperator]?: K extends "in" | "notIn" ? T[] : T;
+};
 
-
-
+export type TFindArgs<T> = {
+  pagination?: PaginationInput;
+  filters?: TFilterInput<T>;
+};

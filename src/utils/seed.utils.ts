@@ -16,11 +16,11 @@ const seedUser = async () => {
     return user
 
   }
-  const users = faker.helpers.multiple(createRandomUser, { count: 100 })
-  const userService = UserService.getInstance()
-  await Promise.all(users.map(user => {
-    userService.createOne(user)
-  }))
+  const users = faker.helpers.multiple(createRandomUser, { count: 500 })
+  await UserService.getInstance().repo.insert(users)
+  // await Promise.all(users.map(user => {
+  //   userService.createOne(user)
+  // }))
 }
 
 const seedDB = async () => {
