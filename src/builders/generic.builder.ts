@@ -6,9 +6,9 @@ import {
   TFilterType,
   TGenericOperator,
 } from "interfaces/generic.interface";
-import GenericRepository from "repositories/generic.repo";
 import { EntityMetadata, EntityTarget, ObjectLiteral, SelectQueryBuilder } from "typeorm";
 import { decodeCursor } from "utils/pagination.utils";
+import { appDataSource } from "lib/datasource";
 
 export type TFilterHandler<T extends ObjectLiteral> = (
   qb: SelectQueryBuilder<T>,
@@ -16,17 +16,18 @@ export type TFilterHandler<T extends ObjectLiteral> = (
   key: keyof T,
 ) => void;
 
-export default abstract class GenericQueryBuilder<T extends ObjectLiteral> {
+export default class GenericQueryBuilder<T extends ObjectLiteral> {
   protected qb: SelectQueryBuilder<T>;
-  protected abstract filterHandlers: Map<string, TFilterHandler<T>>;
+  protected filterHandlers: Map<string, TFilterHandler<T>> = new Map();
   protected tableName: string;
   protected metadata: EntityMetadata;
 
   constructor(entity: EntityTarget<T>) {
-    const repo = new GenericRepository<T>().getInstance(entity);
+    const repo = appDataSource.getRepository(entity);
     this.tableName = repo.metadata.tableName;
     this.qb = repo.createQueryBuilder(this.tableName);
     this.metadata = repo.metadata;
+    this.initialiseFilters();
   }
 
   public applyFilters(filters: TFilterInput<T>): this {
@@ -41,7 +42,16 @@ export default abstract class GenericQueryBuilder<T extends ObjectLiteral> {
     return this;
   }
 
-  protected abstract initialiseFilters(): void;
+  protected initialiseFilters() {
+    //  console.log('INITILIASE FILTER : ', this.metadata.columns)
+    this.metadata.columns.forEach((column) => {
+      if (column.type === String || column.type === "varchar" || column.type === "text") {
+        this.filterHandlers.set(column.propertyName, this.applyStringFilter);
+      } else {
+        this.filterHandlers.set(column.propertyName, this.applyComparisonFilter);
+      }
+    });
+  }
 
   public build(): SelectQueryBuilder<T> {
     return this.qb;
@@ -66,7 +76,9 @@ export default abstract class GenericQueryBuilder<T extends ObjectLiteral> {
         const type = k as TGenericOperator;
         const operatorSign = operatorMap[type];
         if (type === "in" || type === "notIn") {
-          qb.andWhere(`${column} ${operatorSign} :(${paramName})`, { [paramName]: value });
+          qb.andWhere(`${column} ${operatorSign} :(${paramName})`, {
+            [paramName]: value,
+          });
           return;
         }
         qb.andWhere(`${column} ${operatorSign} :${paramName}`, { [paramName]: value });
@@ -74,7 +86,11 @@ export default abstract class GenericQueryBuilder<T extends ObjectLiteral> {
     });
   };
 
-  protected applyStringFilter = (qb: SelectQueryBuilder<T>, filter: TFilterType, key: keyof T) => {
+  protected applyStringFilter = (
+    qb: SelectQueryBuilder<T>,
+    filter: TFilterType,
+    key: keyof T,
+  ) => {
     if (typeof filter !== "object" || filter === null) {
       return;
     }
@@ -91,7 +107,9 @@ export default abstract class GenericQueryBuilder<T extends ObjectLiteral> {
       qb.andWhere(`${column} LIKE :endsWith`, { endsWith: `%${stringFilter.endsWith}` });
     }
     if (stringFilter.startsWith) {
-      qb.andWhere(`${column} LIKE :startsWith`, { startsWith: `${stringFilter.startsWith}%` });
+      qb.andWhere(`${column} LIKE :startsWith`, {
+        startsWith: `${stringFilter.startsWith}%`,
+      });
     }
   };
 
@@ -132,19 +150,18 @@ export default abstract class GenericQueryBuilder<T extends ObjectLiteral> {
     const { tableName } = this.metadata;
     const colCreated = `${tableName}.createdAt`;
     const colId = `${tableName}.id`;
-    const isPaginationBackwards = !!last || !!before
+    const isPaginationBackwards = !!last || !!before;
 
-    const order = isPaginationBackwards ? "DESC" : "ASC"
+    const order = isPaginationBackwards ? "DESC" : "ASC";
     const operator = isPaginationBackwards ? "<" : ">";
     const cursor = isPaginationBackwards ? before : after;
-    
+
     const take = first ?? last ?? 10;
 
     this.qb.orderBy(colCreated, order);
     this.qb.addOrderBy(colId, order);
 
     if (cursor) {
-
       const { createdAt, id } = decodeCursor(cursor);
 
       this.qb.andWhere(

@@ -1,50 +1,45 @@
 import User from "entities/user.entity";
 import {
   DeleteResponse,
-  MutationCreateUserArgs,
   MutationUpdateUserArgs,
   QueryUsersArgs,
-  UpdateUserInput,
   UserConnection,
 } from "generated/graphql";
-import { GraphQLError } from "graphql";
-import UserService from "services/user.service";
+import { MyContext } from "index";
 
 export default {
   Query: {
-    user: async (_: any, { id }: { id: string }) => {
-      return await UserService.getInstance().findById(id);
+    user: async (
+      _: any,
+      { id }: { id: string },
+      { services: { userService } }: MyContext,
+    ) => {
+      return await userService.findById(id);
     },
-    users: async (_: any, { args }: QueryUsersArgs): Promise<UserConnection> => {
-      const { filters, pagination } = args
-      console.log("ARGS DANS RESOLVER : ", args)
-      return await UserService.getInstance().findAll({...filters, pagination});
+    users: async (
+      _: any,
+      { args }: QueryUsersArgs,
+      { services: { userService } }: MyContext,
+    ): Promise<UserConnection> => {
+      const { filters, pagination } = args;
+      return await userService.findAll({ ...filters, pagination });
     },
-    // userByProperties: async (_: any, { args }: QueryUserByPropertiesArgs): Promise<User[]> => {
-    //   const users = await UserService.getInstance().findByProperties(args.filters!);
-    //   return users;
-    // },
   },
   Mutation: {
-    createUser: async (_: any, { args }: MutationCreateUserArgs): Promise<User> => {
-      const { password, confirmPassword } = args;
-      if (password !== confirmPassword) {
-        throw new GraphQLError("Passwords have to match.", {
-          extensions: {
-            code: "MISS_PASSWORD",
-            field: "confirmPassword",
-          },
-        });
-      }
-      const user = await UserService.getInstance().createOne(args);
-      return user;
-    },
-    updateUser: async (_: any, { args }: MutationUpdateUserArgs): Promise<User> => {
+    updateUser: async (
+      _: any,
+      { args }: MutationUpdateUserArgs,
+      { services: { userService } }: MyContext,
+    ): Promise<User> => {
       const { id, ...rest } = args;
-      return await UserService.getInstance().updateOne(id, rest);
+      return await userService.updateOne(id, rest);
     },
-    deleteUser: async (_: any, { id }: { id: string }): Promise<DeleteResponse> => {
-      const isDeleted = await UserService.getInstance().deleteOne(id);
+    deleteUser: async (
+      _: any,
+      { id }: { id: string },
+      { services: { userService } }: MyContext,
+    ): Promise<DeleteResponse> => {
+      const isDeleted = await userService.deleteOne(id);
       const response: DeleteResponse = {
         success: isDeleted,
         Message: isDeleted ? "User successfully deleted." : "Deletion failed.",
