@@ -21,6 +21,8 @@ import Cookies from "cookies"
 import TokenEntity from "entities/token.entity";
 import MailService from "services/mail.service";
 import { buildTransporter } from "lib/nodemailer";
+import SurveyEntity from "entities/survey.entity";
+import SurveyService from "services/survey.service";
 
 export interface MyContext {
   req: Request
@@ -29,6 +31,7 @@ export interface MyContext {
   services: {
     userService: UserService;
     authService: AuthService;
+    surveyService: SurveyService
   };
 }
 const app = express();
@@ -59,13 +62,22 @@ const main = async () => {
 
   await server.start();
 
+  //REPOSITORIES
   const userRepository = appDataSource.getRepository(UserEntity);
   const tokenRepository = appDataSource.getRepository(TokenEntity)
-  const userFilterBuilder = new GenericQueryBuilder(UserEntity);
+  const surveyRepository = appDataSource.getRepository(SurveyEntity)
 
+
+  //FILTER BUILDERS
+  const userFilterBuilder = new GenericQueryBuilder(UserEntity);
+  const surveyFilterBuilder = new GenericQueryBuilder(SurveyEntity)
+
+
+  //SERVICES
   const userService = new UserService(userRepository, userFilterBuilder);
   const mailService = new MailService(buildTransporter())
   const authService = new AuthService(userService, tokenRepository, mailService);
+  const surveyService = new SurveyService(surveyRepository, surveyFilterBuilder)
 
   app.use(
     "/",
@@ -83,7 +95,7 @@ const main = async () => {
         return {
           req, res,
           user,
-          services: { userService, authService },
+          services: { userService, authService, surveyService },
         }
       },
     }),

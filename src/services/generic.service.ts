@@ -1,7 +1,7 @@
 import GenericQueryBuilder from "builders/generic.builder";
 import { PaginationInput} from "generated/graphql";
 import { Edge, TConnection, TFilterInput, TFindArgs } from "interfaces/generic.interface";
-import { DeepPartial, ObjectLiteral, Repository } from "typeorm";
+import { DeepPartial, FindOptions, FindOptionsWhere, ObjectLiteral, Repository } from "typeorm";
 import { cursorEncoder } from "utils/pagination.utils";
 
 export default abstract class GenericService<T extends ObjectLiteral> {
@@ -22,8 +22,6 @@ export default abstract class GenericService<T extends ObjectLiteral> {
 
     return found;
   }
-
-  // abstract resetFilterBuilder() : void
 
   //RECUPERER TOUTES LES INSTANCES
   public async findAll(data: TFindArgs<T>): Promise<TConnection<T>> {
@@ -101,10 +99,11 @@ export default abstract class GenericService<T extends ObjectLiteral> {
   }
 
   //RECUPERER VIA PLUSIEURS PROPRIETES
-  public async findByProperties(filters: TFilterInput<T>): Promise<T[]> {
-    const qbfilters = this.filterBuilder.applyFilters(filters).build();
-    const users = await qbfilters.getMany();
-    return users;
+  public async findByProperties(filters: FindOptionsWhere<T>): Promise<T[]> {
+    const list = await this.repo.find({
+      where: filters
+    })
+    return list
   }
 
   //DELETE
