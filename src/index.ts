@@ -18,6 +18,7 @@ import AuthService from "services/auth.service";
 import GenericQueryBuilder from "builders/generic.builder";
 import { User } from "generated/graphql";
 import Cookies from "cookies"
+import TokenEntity from "entities/token.entity";
 
 export interface MyContext {
   req: Request
@@ -57,10 +58,11 @@ const main = async () => {
   await server.start();
 
   const userRepository = appDataSource.getRepository(UserEntity);
+  const tokenRepository = appDataSource.getRepository(TokenEntity)
   const userFilterBuilder = new GenericQueryBuilder(UserEntity);
 
   const userService = new UserService(userRepository, userFilterBuilder);
-  const authService = new AuthService(userService);
+  const authService = new AuthService(userService, tokenRepository);
 
   app.use(
     "/",
@@ -73,7 +75,7 @@ const main = async () => {
         const cookie = new Cookies(req, res)
         const token = cookie.get("token")
         if (token) {
-          user = await authService.verifyTokenValidity(token)
+          user = await authService.verifyJWTValidity(token)
         }
         return {
           req, res,

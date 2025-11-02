@@ -1,8 +1,21 @@
-
 type Mutation {
   signup(args: SignupInput!): User!
   signin(args: SigninInput!): User!
   signout: DeleteResponse!
+  askResetPassword(email: String!): GenericResponse!
+  resetPassword(args: ResetPasswordInput): User!
+}
+
+input ResetPasswordInput {
+  email: String!
+  token: String!
+  newPassword: String!
+    @constraint(
+      pattern: "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$"
+      maxLength: 30
+      minLength: 8
+    )
+  confirmNewPassword: String!
 }
 
 input SignupInput {

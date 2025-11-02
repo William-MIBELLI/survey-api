@@ -3,6 +3,9 @@ import { GraphQLError } from "graphql";
 import UserService from "./user.service";
 import jose from "jose";
 import argon2 from "argon2";
+import crypto from "crypto";
+import { Repository } from "typeorm";
+import TokenEntity, { EToken } from "entities/token.entity";
 
 type AuthPayload = {
   token: string;
@@ -10,7 +13,7 @@ type AuthPayload = {
 };
 
 export default class AuthService {
-  public constructor(private userService: UserService) {}
+  public constructor(private userService: UserService, private tokenRepo: Repository<TokenEntity>) {}
 
   public async signup(args: SignupInput): Promise<AuthPayload> {
     const { password, confirmPassword } = args;
@@ -64,7 +67,7 @@ export default class AuthService {
     return token;
   }
 
-  public async verifyTokenValidity(token: string): Promise<User | null> {
+  public async verifyJWTValidity(token: string): Promise<User | null> {
     const secret = new TextEncoder().encode(process.env.SECRET_JWT!);
     try {
       const verify = await jose.jwtVerify<{ id: string }>(token, secret, {});
@@ -74,5 +77,30 @@ export default class AuthService {
       console.log("ERROR WHILE DECODING JWT : ", error?.message);
       return null;
     }
+  }
+
+  public async askResetPassword(email: string): Promise<boolean> {
+    const user = await this.userService.findUserByEmail(email);
+
+    if (!user) {
+      return false;
+    }
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const expiration = Date.now() + 15 * 1000
+    const hashedResetToken = await argon2.hash(resetToken, { type: argon2.argon2id });
+
+    const entity = new TokenEntity()
+    entity.token = hashedResetToken
+    entity.type = EToken.RESET_PASSWORD
+    entity.userId = user.id
+    entity.expiration = new Date(expiration)
+
+    const created = await this.tokenRepo.save(entity)
+
+    if (!created) {
+      return false
+    }
+
+    return true;
   }
 }

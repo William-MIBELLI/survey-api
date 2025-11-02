@@ -6,6 +6,10 @@ enum Order {
   DESC
 }
 
+type GenericResponse {
+  success: Boolean!
+  message: String!
+}
 
 type DeleteResponse {
   success: Boolean!

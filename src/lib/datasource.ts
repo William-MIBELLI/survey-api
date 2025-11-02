@@ -1,5 +1,6 @@
-import Question from "entities/question.entity";
-import Survey from "entities/survey.entity";
+import QuestionEntity from "entities/question.entity";
+import SurveyEntity from "entities/survey.entity";
+import TokenEntity from "entities/token.entity";
 import UserEntity from "entities/user.entity";
 import { DataSource } from "typeorm";
 
@@ -12,7 +13,7 @@ export const appDataSource = new DataSource({
   username: POSTGRES_USER,
   password: POSTGRES_PASSWORD,
   database: POSTGRES_DB,
-  entities: [UserEntity, Survey, Question],
+  entities: [UserEntity, SurveyEntity, QuestionEntity, TokenEntity],
   synchronize: true,
   logging: ["error"],
 });

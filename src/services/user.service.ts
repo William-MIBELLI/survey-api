@@ -15,7 +15,7 @@ export default class UserService extends GenericService<UserEntity> {
     super(repo, filterBuilder);
   }
 
-  public async findUserForSignin(args: SigninInput): Promise<User | null> {
+  public async findUserForSignin(args: SigninInput): Promise<UserEntity | null> {
     const user = await this.repo
       .createQueryBuilder("user")
       .where("user.email = :email", { email: args.email })
@@ -27,5 +27,9 @@ export default class UserService extends GenericService<UserEntity> {
 
   public async createUserForSeeding(users: SignupInput[]) {
     await this.repo.save(users, { chunk: 500});
+  }
+
+  public async findUserByEmail(email: string): Promise<UserEntity | null> {
+    return await this.repo.findOne({ where: {email} })
   }
 }

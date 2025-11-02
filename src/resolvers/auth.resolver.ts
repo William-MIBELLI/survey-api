@@ -1,6 +1,8 @@
 import Cookies from "cookies";
 import {
   DeleteResponse,
+  GenericResponse,
+  MutationResetPasswordArgs,
   MutationSigninArgs,
   MutationSignupArgs,
   User,
@@ -39,6 +41,24 @@ const resolver = {
         Message: "You've been successfully logged out.",
         success: true,
       };
+    },
+    resetPassword: async (_: any, args: MutationResetPasswordArgs) => {},
+    askResetPassword: async (
+      _: any,
+      { email }: { email: string },
+      { services: { authService } }: MyContext,
+    ): Promise<GenericResponse> => {
+      const response: GenericResponse = {
+        success: true,
+        message: "If an address email match, an email was emited with resfresh link."
+      }
+      const resetToken = await authService.askResetPassword(email)
+      if (!resetToken) {
+        return response
+      }
+      //ICI JENVERRAI UN EMAIL DEPUIS UN EmailService, AFIN DE BIEN SEPARER LES LOGIQUES ?
+      return response
+      
     },
   },
 };
