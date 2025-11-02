@@ -12,7 +12,7 @@ export default class MailService {
     email,
     token,
   }: TEmailResetPassword): Promise<boolean> {
-    const url = `http://localhost:3000/resetPassword/${token}`;
+    const url = `${process.env.FRONTEND_URL!}/resetPassword/${token}`;
     try {
       const response = await this.transporter.sendMail({
         from: process.env.EMAIL!,
@@ -30,7 +30,7 @@ export default class MailService {
       return true;
     } catch (error: any) {
       console.log("ERROR SENDING MAIL : ", error?.message);
-      return false;
+      throw new Error("Sending email failed.")
     }
   }
 }

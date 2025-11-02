@@ -7,6 +7,7 @@ import {
   MutationSignupArgs,
   User,
 } from "generated/graphql";
+import { GraphQLError } from "graphql";
 import { MyContext } from "index";
 
 const resolver = {
@@ -42,23 +43,39 @@ const resolver = {
         success: true,
       };
     },
-    resetPassword: async (_: any, args: MutationResetPasswordArgs) => {},
+    resetPassword: async (
+      _: any,
+      data: MutationResetPasswordArgs,
+      { services: { authService }, req, res }: MyContext,
+    ): Promise<User> => {
+      try {
+        const payload = await authService.resetPassword(data.args);
+        new Cookies(req, res).set("token", payload.token, { httpOnly: true });
+
+        return payload.user;
+      } catch (error: any) {
+        throw new GraphQLError(error?.message);
+      }
+    },
     askResetPassword: async (
       _: any,
       { email }: { email: string },
       { services: { authService } }: MyContext,
     ): Promise<GenericResponse> => {
-      const response: GenericResponse = {
+      try {
+        const res = await authService.askResetPassword(email);
+
+        if (!res) {
+          console.error("Asking reset password process failed.");
+        }
+      } catch (error: any) {
+        console.error("Error during reset token password creation : ", error?.message);
+      }
+
+      return {
         success: true,
-        message: "If an address email match, an email was emited with resfresh link."
-      }
-      const resetToken = await authService.askResetPassword(email)
-      if (!resetToken) {
-        return response
-      }
-      //ICI JENVERRAI UN EMAIL DEPUIS UN EmailService, AFIN DE BIEN SEPARER LES LOGIQUES ?
-      return response
-      
+        message: "If an address email match, an email was emited with resfresh link.",
+      };
     },
   },
 };

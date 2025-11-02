@@ -2,9 +2,11 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
+import UserEntity from "./user.entity";
 
 export enum EToken {
   RESET_PASSWORD = "RESET_PASSWORD",
@@ -33,4 +35,7 @@ export default class TokenEntity {
 
   @UpdateDateColumn({ type: "timestamp", precision: 3 })
   updatedAt: Date;
+
+  @ManyToOne(() => UserEntity, (userEntity) => userEntity.id)
+  user: UserEntity
 }

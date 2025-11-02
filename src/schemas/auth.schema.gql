@@ -3,7 +3,7 @@ type Mutation {
   signin(args: SigninInput!): User!
   signout: DeleteResponse!
   askResetPassword(email: String!): GenericResponse!
-  resetPassword(args: ResetPasswordInput): User!
+  resetPassword(args: ResetPasswordInput!): User!
 }
 
 input ResetPasswordInput {

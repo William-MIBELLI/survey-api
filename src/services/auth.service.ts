@@ -1,4 +1,4 @@
-import { SigninInput, SignupInput, User } from "generated/graphql";
+import { ResetPasswordInput, SigninInput, SignupInput, User } from "generated/graphql";
 import { GraphQLError } from "graphql";
 import UserService from "./user.service";
 import jose from "jose";
@@ -105,15 +105,61 @@ export default class AuthService {
     if (!created) {
       return false;
     }
-    const isMailSent = await this.mailService.sendResetPasswordEmail({
-      email: user.email,
-      token: resetToken,
-    });
 
-    if (!isMailSent) {
-      return false
+    try {
+      await this.mailService.sendResetPasswordEmail({
+        email: user.email,
+        token: resetToken,
+      });
+    } catch (error) {
+      await this.tokenRepo.delete({ id: created.id });
+      throw error;
     }
-    
+
     return true;
+  }
+
+  public async resetPassword(args: ResetPasswordInput): Promise<AuthPayload> {
+    const error: Error = new Error("Unable to reset password.");
+
+    if (args.newPassword !== args.confirmNewPassword) {
+      throw new Error("Password have to match.");
+    }
+
+    const entityToken = await this.tokenRepo.findOne({
+      where: {
+        user: {
+          email: args.email,
+        },
+        type: EToken.RESET_PASSWORD,
+      },
+      relations: {
+        user: true,
+      },
+    });
+    if (!entityToken) {
+      throw error;
+    }
+    if (Date.now() > entityToken.expiration.getTime()) {
+      await this.tokenRepo.delete({ id: entityToken.id });
+
+      throw error;
+    }
+
+    const isValid = await argon2.verify(entityToken.token, args.token);
+    if (!isValid) {
+      throw error;
+    }
+
+    const hashedPassword = await argon2.hash(args.newPassword, {
+      type: argon2.argon2id,
+    });
+    await this.userService.updateOne(entityToken.userId, { password: hashedPassword });
+
+    await this.tokenRepo.delete({ id: entityToken.id });
+
+    const payload = await this.signin({ email: args.email, password: args.newPassword });
+
+    return payload;
   }
 }
