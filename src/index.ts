@@ -19,6 +19,8 @@ import GenericQueryBuilder from "builders/generic.builder";
 import { User } from "generated/graphql";
 import Cookies from "cookies"
 import TokenEntity from "entities/token.entity";
+import MailService from "services/mail.service";
+import { buildTransporter } from "lib/nodemailer";
 
 export interface MyContext {
   req: Request
@@ -62,7 +64,8 @@ const main = async () => {
   const userFilterBuilder = new GenericQueryBuilder(UserEntity);
 
   const userService = new UserService(userRepository, userFilterBuilder);
-  const authService = new AuthService(userService, tokenRepository);
+  const mailService = new MailService(buildTransporter())
+  const authService = new AuthService(userService, tokenRepository, mailService);
 
   app.use(
     "/",

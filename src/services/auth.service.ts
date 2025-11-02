@@ -6,6 +6,7 @@ import argon2 from "argon2";
 import crypto from "crypto";
 import { Repository } from "typeorm";
 import TokenEntity, { EToken } from "entities/token.entity";
+import MailService from "./mail.service";
 
 type AuthPayload = {
   token: string;
@@ -13,7 +14,11 @@ type AuthPayload = {
 };
 
 export default class AuthService {
-  public constructor(private userService: UserService, private tokenRepo: Repository<TokenEntity>) {}
+  public constructor(
+    private userService: UserService,
+    private tokenRepo: Repository<TokenEntity>,
+    private mailService: MailService,
+  ) {}
 
   public async signup(args: SignupInput): Promise<AuthPayload> {
     const { password, confirmPassword } = args;
@@ -86,21 +91,29 @@ export default class AuthService {
       return false;
     }
     const resetToken = crypto.randomBytes(32).toString("hex");
-    const expiration = Date.now() + 15 * 1000
+    const expiration = Date.now() + 15 * 60 * 1000;
     const hashedResetToken = await argon2.hash(resetToken, { type: argon2.argon2id });
 
-    const entity = new TokenEntity()
-    entity.token = hashedResetToken
-    entity.type = EToken.RESET_PASSWORD
-    entity.userId = user.id
-    entity.expiration = new Date(expiration)
+    const entity = new TokenEntity();
+    entity.token = hashedResetToken;
+    entity.type = EToken.RESET_PASSWORD;
+    entity.userId = user.id;
+    entity.expiration = new Date(expiration);
 
-    const created = await this.tokenRepo.save(entity)
+    const created = await this.tokenRepo.save(entity);
 
     if (!created) {
+      return false;
+    }
+    const isMailSent = await this.mailService.sendResetPasswordEmail({
+      email: user.email,
+      token: resetToken,
+    });
+
+    if (!isMailSent) {
       return false
     }
-
+    
     return true;
   }
 }
