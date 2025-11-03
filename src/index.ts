@@ -23,8 +23,9 @@ import MailService from "services/mail.service";
 import { buildTransporter } from "lib/nodemailer";
 import SurveyEntity from "entities/survey.entity";
 import SurveyService from "services/survey.service";
+import { ObjectLiteral } from "typeorm";
 
-export interface MyContext {
+export interface MyContext<T extends ObjectLiteral = {}> {
   req: Request
   res: Response
   user?: User | null;
@@ -33,6 +34,9 @@ export interface MyContext {
     authService: AuthService;
     surveyService: SurveyService
   };
+  preload?: {
+    entity: T
+  }
 }
 const app = express();
 

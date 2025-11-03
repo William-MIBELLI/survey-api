@@ -37,9 +37,9 @@ export default {
     deleteUser: async (
       _: any,
       { id }: { id: string },
-      { services: { userService } }: MyContext,
+      { services: { userService }, user }: MyContext,
     ): Promise<DeleteResponse> => {
-      const isDeleted = await userService.deleteOne(id);
+      const isDeleted = await userService.deleteOne(user!);
       const response: DeleteResponse = {
         success: isDeleted,
         Message: isDeleted ? "User successfully deleted." : "Deletion failed.",

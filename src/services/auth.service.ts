@@ -154,7 +154,7 @@ export default class AuthService {
     const hashedPassword = await argon2.hash(args.newPassword, {
       type: argon2.argon2id,
     });
-    await this.userService.updateOne(entityToken.userId, { password: hashedPassword });
+    await this.userService.updateOne(entityToken.user, { password: hashedPassword });
 
     await this.tokenRepo.delete({ id: entityToken.id });
 
