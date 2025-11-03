@@ -1,96 +1,81 @@
-import { Cursor, PageInfo, PaginationInput } from "generated/graphql";
-import { Edge, TConnection, TEntity, TReturn } from "interfaces/generic.interface";
-import { appDataSource } from "lib/datasource";
-import GenericRepository from "repositories/generic.repo";
-import { DeepPartial, EntityTarget, ObjectLiteral, Repository } from "typeorm";
-import { cursorEncoder, decodeCursor } from "utils/pagination.utils";
+import GenericQueryBuilder from "builders/generic.builder";
+import { PaginationInput} from "generated/graphql";
+import { Edge, TConnection, TFilterInput, TFindArgs } from "interfaces/generic.interface";
+import { DeepPartial, FindOptions, FindOptionsWhere, ObjectLiteral, Repository } from "typeorm";
+import { cursorEncoder } from "utils/pagination.utils";
 
 export default abstract class GenericService<T extends ObjectLiteral> {
-  protected repo: Repository<T>;
 
-  constructor(entity: EntityTarget<T>) {
-    this.repo = new GenericRepository<T>().getInstance(entity);
+  protected filterBuilder: GenericQueryBuilder<T>;
+
+  constructor(protected repo: Repository<T>, fb: GenericQueryBuilder<T>) {
+    this.filterBuilder = fb
   }
 
   //CREER UNE INSTANCE DE T
   public async createOne(entity: DeepPartial<T>) {
     const created = await this.repo.save(this.repo.create(entity));
-    //ON RECHERCHE AVEC UN FIND POUR RECUPERER LES RELATIONS EN MEME TEMPS
-    const finded = await this.repo.findOne({ where: { id: created.id } });
-    if (!finded) {
+    const found = await this.repo.findOne({ where: { id: created.id } });
+    if (!found) {
       throw new Error("Impossible de créer l'entité");
     }
 
-    return finded;
+    return found;
   }
 
   //RECUPERER TOUTES LES INSTANCES
-  public async findAll(pagination: PaginationInput): Promise<TConnection<T>> {
-    const { first, after, before, last } = pagination;
-
-    //TESTS DE LA PAGINATION
-    if (first && first <= 0) {
-      throw new Error("Argument 'first' must be a positive integer.");
-    }
-    if (last && last <= 0) {
-      throw new Error("Argument 'last' must be a positive integer.");
-    }
-    if (first && last) {
-      throw new Error("Cannot use 'first' and 'last' arguments together.");
-    }
-    if (after && before) {
-      throw new Error("Cannot use 'after' and 'before' arguments together.");
+  public async findAll(data: TFindArgs<T>): Promise<TConnection<T>> {
+    const { pagination, ...filters } = data;
+    if (filters) {
+      this.filterBuilder.applyFilters(filters as TFilterInput<T>);
     }
 
-    //MISE EN PLACE DES PARAMETRE POUR LA QUERY
-    const name = this.repo.metadata.name;
-    const colCreated = `${name}.createdAt`;
-    const colId = `${name}.id`;
-    const order = first ? "ASC" : "DESC";
+    if (pagination) {
+      this.filterBuilder.applyPagination(pagination);
+    }
+
+    const query = this.filterBuilder.build();
+    const list = await query.getMany();
+    const count = await query.getCount();
+
+    const connection = this.buildConnection(list, count, pagination);
+
+    return connection;
+  }
+
+  protected buildConnection(
+    queryResult: T[],
+    count: number,
+    pagination?: PaginationInput,
+  ): TConnection<T> {
+    const { first, after, before, last } = pagination || {};
+
     const take = first ?? last ?? 10;
 
-    //CREATION DE LA QUERY
-    const query = this.repo.createQueryBuilder();
-    query.orderBy(colCreated, order);
-    query.addOrderBy(colId, order);
-    if (after) {
-      const { createdAt, id } = decodeCursor(after);
-      query.where(`${colCreated} > :createdAt OR ${colCreated} = :createdAt AND ${colId} > :id`, { createdAt, id });
-    }
-    if (before) {
-      const { createdAt, id } = decodeCursor(before);
-      query.where(`${colCreated} < :createdAt OR ${colCreated} = :createdAt AND ${colId} < :id`, { createdAt, id });
-    }
-    query.take(take + 1);
-
     //RECUPERATION DES DATAS
-    const list = await query.getMany();
-    const count = await this.repo.count();
-
-    const hasMore = list.length > take;
-    if (hasMore) list.pop();
+    const hasMore = queryResult.length > take;
+    if (hasMore) queryResult.pop();
 
     //CONSTRUCTION DU PAGEINFO
     let hasNextPage: boolean;
     let hasPreviousPage: boolean;
 
     if (before) {
-      list.reverse();
+      queryResult.reverse();
       hasNextPage = !!before;
       hasPreviousPage = hasMore;
     } else {
-      hasNextPage = hasMore
-      hasPreviousPage = !!after
+      hasNextPage = hasMore;
+      hasPreviousPage = !!after;
     }
 
     //CONSTRUCTION DU EDGES
-    const edges: Edge<T>[] = list.map(item => {
+    const edges: Edge<T>[] = queryResult.map((item) => {
       return {
         cursor: cursorEncoder({ createdAt: item.createdAt, id: item.id }),
-        node: item
-      }
-    })
-
+        node: item,
+      };
+    });
 
     return {
       edges,
@@ -98,12 +83,11 @@ export default abstract class GenericService<T extends ObjectLiteral> {
       pageInfo: {
         hasNextPage,
         hasPreviousPage,
-        
-      }
+      },
     };
   }
 
-  //RECUPERER UNE INSTANCE VIA SON ID
+  //RECUPERER UNE INSTANCE VIA SON ID&
   public async findById(id: string) {
     const ad = await this.repo.findOne({
       where: {
@@ -114,61 +98,38 @@ export default abstract class GenericService<T extends ObjectLiteral> {
     return ad;
   }
 
-  // //RECUPERER VIA PLUSIEURS PROPRIETES
-  // public async findByProperties(
-  //   fields: FindOptionsWhere<T>,
-  //   pag?: PaginationInput
-  // ): Promise<T[]> {
-  //   const { created, limit, order } = this.getPagination(pag);
-  //   return await this.repo.find({
-  //     where: {
-  //       ...fields,
-  //       createdAt: Raw((alias) => `${alias} >= :created`, { created }),
-  //     } as any,
-  //     take: limit,
-  //     order: {
-  //       createdAt: order,
-  //     } as any,
-  //   });
-  // }
-
-  // //RECUPERER ENTRE 2 DATES DE CREATION
-  // public async findByCreationSlot(data: ByCreationSlotInput): Promise<T[]> {
-  //   const { start, end, name, pagination } = data;
-
-  //   const startDate = pagination?.created || start
-
-  //   const result = await this.repo
-  //     .createQueryBuilder(name)
-  //     .where(`${name}.createdAt >= :start`, { start: new Date(startDate) })
-  //     .andWhere(`${name}.createdAt <= :end`, { end: new Date(end) })
-  //     .orderBy(`${name}.createdAt `, pagination?.order || "ASC")
-  //     .limit(pagination?.limit || 20)
-  //     .getMany();
-
-  //   return result;
-  // }
+  //RECUPERER VIA PLUSIEURS PROPRIETES
+  public async findByProperties(filters: FindOptionsWhere<T>): Promise<T[]> {
+    const list = await this.repo.find({
+      where: filters
+    })
+    return list
+  }
 
   //DELETE
-  public async deleteOne(id: string): Promise<boolean> {
-    const deleted = await this.repo.delete({ id: id as any });
-    if (!deleted.affected || deleted.affected === 0) {
+  public async deleteOne(entityToDelete: T): Promise<boolean> {
+    const deleted = await this.repo.remove(entityToDelete)
+    if (!deleted) {
       return false;
     }
     return true;
   }
 
   //UPDATE
-  public async updateOne(id: string, entity: Partial<T>): Promise<T | null> {
-    const updated = await this.repo.update(id, entity);
-    if (!updated) {
-      throw new Error("Nothing affected.");
-    }
-    const updatedEntity = await this.findById(id);
+  public async updateOne(initialEntity: T, partialEntity: DeepPartial<T>): Promise<T> {
 
-    if (!updatedEntity) {
-      throw new Error("Entity not found after update");
-    }
-    return updatedEntity;
+    const merged = this.repo.merge( initialEntity, partialEntity )
+    // const updated = await this.repo.save(toSaved, {})
+    // if (!updated) {
+    //   throw new Error("Nothing affected.");
+    
+    // const updatedEntity = await this.findById(id);
+    // const res = updated.generatedMaps
+    // console.log("RES DANS UPDATE : ", res)
+
+    // if (!updatedEntity) {
+    //   throw new Error("Entity not found after update");
+    // }
+    return this.repo.save(merged);
   }
 }

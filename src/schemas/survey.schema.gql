@@ -1,0 +1,70 @@
+scalar Date
+
+type Survey {
+  id: UUID!
+  name: String!
+  description: String!
+  isPublic: Boolean!
+  startDate: Date
+  endDate: Date
+  owner: User!
+  createdAt: Date!
+  updatedAt: Date!
+}
+
+type SurveyEdge {
+  cursor: String!
+  node: Survey!
+}
+
+type SurveyConnection {
+  totalCount: Int!
+  edges: [SurveyEdge!]!
+  pageInfo: PageInfo!
+}
+
+
+type Query {
+  survey(id: UUID!): Survey
+  surveys(args: SurveyFilterInput!): SurveyConnection!
+}
+
+type Mutation {
+  createSurvey(args: CreateSurveyInput!): Survey!
+  updateSurvey(args: UpdateSurveyInput!): Survey!
+  deleteSurvey(id: UUID!): DeleteResponse!
+}
+
+input CreateSurveyInput {
+  name: String!
+  description: String!
+  isPublic: Boolean!
+  startDate: Date
+  endDate: Date
+}
+
+input UpdateSurveyInput {
+  id: UUID!
+  name: String
+  description: String
+  isPublic: Boolean
+  startDate: Date
+  endDate: Date
+}
+
+
+input SurveyFilter {
+  id: UUID
+  description: StringFilterInput
+  name: StringFilterInput
+  isPublic: BooleanFilterInput
+  createdAt: DateFilterInput
+  updatedAt: DateFilterInput
+  startDate: DateFilterInput
+  endDate: DateFilterInput
+}
+
+input SurveyFilterInput {
+  filters: SurveyFilter
+  pagination: PaginationInput
+}

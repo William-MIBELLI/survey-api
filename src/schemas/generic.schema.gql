@@ -1,9 +1,14 @@
 scalar UUID
-scalar Timestamp
+scalar Date
 
 enum Order {
   ASC
   DESC
+}
+
+type GenericResponse {
+  success: Boolean!
+  message: String!
 }
 
 type DeleteResponse {
@@ -25,7 +30,44 @@ input PaginationInput {
   after: String
 }
 
-type Cursor {
-  createdAt: Timestamp!
-  id: UUID!
+
+input BooleanFilterInput{
+  equals: Boolean
+}
+
+input IdFilterInput {
+  equals: ID
+  in: [ID!]
+  not: ID
+  notIn: [ID!]
+}
+
+input IntFilterInput {
+    equals: Int
+    gt: Int
+    gte: Int
+    in: [Int!]
+    lt: Int
+    lte: Int
+    not: Int
+    notIn: [Int!]
+}
+
+input StringFilterInput {
+  contains: String
+  endsWith: String
+  equals: String
+  in: [String!]
+  not: String
+  notIn: [String!]
+  startsWith: String
+}
+
+
+input DateFilterInput {
+    equals: Date
+    gt: Date
+    gte: Date
+    lt: Date
+    lte: Date
 }

@@ -1,6 +1,5 @@
-
-scalar Timestamp
 scalar UUID
+scalar Date
 
 type Survey {
   id: UUID!
@@ -12,8 +11,8 @@ type User {
   firstname: String
   lastname: String
   isPremium: Boolean!
-  createdAt: Timestamp!     
-  updatedAt: Timestamp!
+  createdAt: Date!
+  updatedAt: Date!
   # surveys: [Survey!]!
 }
 
@@ -22,47 +21,57 @@ type UserEdge {
   node: User!
 }
 
-
 type UserConnection {
   totalCount: Int!
   edges: [UserEdge!]!
   pageInfo: PageInfo!
 }
 
-
 type Query {
   user(id: UUID): User
-  users(pagination: PaginationInput!): UserConnection!
-  userByProperties(args: PropertiesUserInput!): UserConnection!
+  users(args: UserFilterInput!): UserConnection!
+  # users(pagination: PaginationInput!): UserConnection!
+  # userByProperties(args: UserFilterInput!): [User!]!
 }
 
-# type Mutation {
-#   createUser(args: CreateUserInput!): User!
-#   updateUser(args: UpdateUserInput!): User!
-#   deleteUser(id: UUID!): DeleteResponse!
+type Mutation {
+  # createUser(args: CreateUserInput!): User!
+  updateMe(args: UpdateUserInput!): User!
+  deleteMe: DeleteResponse!
+}
+
+input UserFilter {
+  id: UUID
+  email: StringFilterInput
+  firstname: StringFilterInput
+  lastname: StringFilterInput
+  isPremium: BooleanFilterInput
+  createdAt: DateFilterInput
+  updatedAt: DateFilterInput
+}
+
+input UserFilterInput {
+  filters: UserFilter
+  pagination: PaginationInput
+}
+
+# input CreateUserInput {
+#   email: String! @constraint(format: "email", maxLength: 255)
+#   firstname: String @constraint(pattern: "^[0-9a-zA-Z]*$", maxLength: 255, minLength: 3)
+#   lastname: String @constraint(pattern: "^[0-9a-zA-Z]*$", maxLength: 255, minLength: 3)
+#   isPremium: Boolean!
+#   password: String!
+#     @constraint(
+#       pattern: "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$"
+#       maxLength: 30
+#       minLength: 8
+#     )
+#   confirmPassword: String!
 # }
 
-input PropertiesUserInput {
-  id: UUID
-  email: String
-  firstname: String
-  lastname: String
-  isPremium: Boolean
-}
-
-input CreateUserInput {
-  email: String!
-  firstname: String
-  lastname: String
-  isPremium: Boolean!
-  password: String!
-  confirmPassword: String!
-}
-
 input UpdateUserInput {
-  id: UUID!
-  email: String
-  firstname: String
-  lastname: String
+  email: String @constraint(format: "email", maxLength: 255)
+  firstname: String @constraint(pattern: "^[0-9a-zA-Z]*$", maxLength: 255, minLength: 3)
+  lastname: String @constraint(pattern: "^[0-9a-zA-Z]*$", maxLength: 255, minLength: 3)
   isPremium: Boolean
 }
