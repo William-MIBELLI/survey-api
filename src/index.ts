@@ -2,7 +2,7 @@ import "reflect-metadata";
 import { ApolloServer } from "@apollo/server";
 import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
 import { expressMiddleware } from "@as-integrations/express5";
-import express, { Request, Response } from "express";
+import express from "express";
 import http from "http";
 import cors from "cors";
 import resolvers from "resolvers";
@@ -13,7 +13,6 @@ import { constraintDirective } from "graphql-constraint-directive";
 import { formatError } from "utils/error.utils";
 import UserEntity from "entities/user.entity";
 import UserService from "services/user.service";
-import UserQueryBuilder from "builders/user.builder";
 import AuthService from "services/auth.service";
 import GenericQueryBuilder from "builders/generic.builder";
 import { User } from "generated/graphql";
@@ -23,21 +22,8 @@ import MailService from "services/mail.service";
 import { buildTransporter } from "lib/nodemailer";
 import SurveyEntity from "entities/survey.entity";
 import SurveyService from "services/survey.service";
-import { ObjectLiteral } from "typeorm";
+import { MyContext } from "interfaces/graphql.interface";
 
-export interface MyContext<T extends ObjectLiteral = {}> {
-  req: Request
-  res: Response
-  user?: User | null;
-  services: {
-    userService: UserService;
-    authService: AuthService;
-    surveyService: SurveyService
-  };
-  preload?: {
-    entity: T
-  }
-}
 const app = express();
 
 const httpServer = http.createServer(app);
@@ -90,7 +76,7 @@ const main = async () => {
 
     expressMiddleware(server, {
       context: async ({ req, res }): Promise<MyContext> => {
-        let user: User | null = null
+        let user: UserEntity | null = null
         const cookie = new Cookies(req, res)
         const token = cookie.get("token")
         if (token) {

@@ -8,7 +8,8 @@ import {
   User,
 } from "generated/graphql";
 import { GraphQLError } from "graphql";
-import { MyContext } from "index";
+import { MyContext } from "interfaces/graphql.interface";
+
 
 const resolver = {
   Query: {},

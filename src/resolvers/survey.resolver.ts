@@ -7,9 +7,9 @@ import {
   Survey,
   SurveyConnection,
 } from "generated/graphql";
-import { GraphQLError, GraphQLFieldResolver } from "graphql";
-import { MyContext } from "index";
+import { GraphQLError } from "graphql";
 import { composeResolvers } from "@graphql-tools/resolvers-composition";
+import { MyContext, ResolverWrapper } from "interfaces/graphql.interface";
 
 const surveyResolver = {
   Query: {
@@ -83,9 +83,7 @@ const surveyResolver = {
   },
 };
 
-type ResolverWrapper<TSource = any, TArgs = { id: string }, TResult = any> = (
-  next: GraphQLFieldResolver<TSource, MyContext, TArgs, TResult>,
-) => GraphQLFieldResolver<TSource, MyContext, TArgs, TResult>;
+
 
 const isSurveyFromUser =
   (): ResolverWrapper => (next) => async (root, args, context, info) => {
