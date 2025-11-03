@@ -1,9 +1,0 @@
-type Dummy {
-  name: String,
-  age: Int
-}
-
-type Query {
-  dummy: Dummy
-}
-

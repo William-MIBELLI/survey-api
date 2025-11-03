@@ -7,6 +7,7 @@ import crypto from "crypto";
 import { Repository } from "typeorm";
 import TokenEntity, { EToken } from "entities/token.entity";
 import MailService from "./mail.service";
+import UserEntity from "entities/user.entity";
 
 type AuthPayload = {
   token: string;
@@ -72,7 +73,7 @@ export default class AuthService {
     return token;
   }
 
-  public async verifyJWTValidity(token: string): Promise<User | null> {
+  public async verifyJWTValidity(token: string): Promise<UserEntity | null> {
     const secret = new TextEncoder().encode(process.env.SECRET_JWT!);
     try {
       const verify = await jose.jwtVerify<{ id: string }>(token, secret, {});
@@ -154,7 +155,7 @@ export default class AuthService {
     const hashedPassword = await argon2.hash(args.newPassword, {
       type: argon2.argon2id,
     });
-    await this.userService.updateOne(entityToken.userId, { password: hashedPassword });
+    await this.userService.updateOne(entityToken.user, { password: hashedPassword });
 
     await this.tokenRepo.delete({ id: entityToken.id });
 

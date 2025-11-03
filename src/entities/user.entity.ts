@@ -9,6 +9,7 @@ import {
 } from "typeorm";
 import Survey from "./survey.entity";
 import argon2 from "argon2";
+import SurveyEntity from "./survey.entity";
 
 @Entity()
 export default class UserEntity {
@@ -37,7 +38,7 @@ export default class UserEntity {
   updatedAt: Date;
 
   @OneToMany(() => Survey, (survey) => survey.owner)
-  surveys: Survey[];
+  surveys: SurveyEntity[];
 
   @BeforeInsert()
   async hashPassword() {

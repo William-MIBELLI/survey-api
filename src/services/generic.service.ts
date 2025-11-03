@@ -1,7 +1,7 @@
 import GenericQueryBuilder from "builders/generic.builder";
 import { PaginationInput} from "generated/graphql";
 import { Edge, TConnection, TFilterInput, TFindArgs } from "interfaces/generic.interface";
-import { DeepPartial, ObjectLiteral, Repository } from "typeorm";
+import { DeepPartial, FindOptions, FindOptionsWhere, ObjectLiteral, Repository } from "typeorm";
 import { cursorEncoder } from "utils/pagination.utils";
 
 export default abstract class GenericService<T extends ObjectLiteral> {
@@ -22,8 +22,6 @@ export default abstract class GenericService<T extends ObjectLiteral> {
 
     return found;
   }
-
-  // abstract resetFilterBuilder() : void
 
   //RECUPERER TOUTES LES INSTANCES
   public async findAll(data: TFindArgs<T>): Promise<TConnection<T>> {
@@ -101,32 +99,37 @@ export default abstract class GenericService<T extends ObjectLiteral> {
   }
 
   //RECUPERER VIA PLUSIEURS PROPRIETES
-  public async findByProperties(filters: TFilterInput<T>): Promise<T[]> {
-    const qbfilters = this.filterBuilder.applyFilters(filters).build();
-    const users = await qbfilters.getMany();
-    return users;
+  public async findByProperties(filters: FindOptionsWhere<T>): Promise<T[]> {
+    const list = await this.repo.find({
+      where: filters
+    })
+    return list
   }
 
   //DELETE
-  public async deleteOne(id: string): Promise<boolean> {
-    const deleted = await this.repo.delete({ id: id as any });
-    if (!deleted.affected || deleted.affected === 0) {
+  public async deleteOne(entityToDelete: T): Promise<boolean> {
+    const deleted = await this.repo.remove(entityToDelete)
+    if (!deleted) {
       return false;
     }
     return true;
   }
 
   //UPDATE
-  public async updateOne(id: string, entity: Partial<T>): Promise<T> {
-    const updated = await this.repo.update(id, entity);
-    if (!updated) {
-      throw new Error("Nothing affected.");
-    }
-    const updatedEntity = await this.findById(id);
+  public async updateOne(initialEntity: T, partialEntity: DeepPartial<T>): Promise<T> {
 
-    if (!updatedEntity) {
-      throw new Error("Entity not found after update");
-    }
-    return updatedEntity;
+    const merged = this.repo.merge( initialEntity, partialEntity )
+    // const updated = await this.repo.save(toSaved, {})
+    // if (!updated) {
+    //   throw new Error("Nothing affected.");
+    
+    // const updatedEntity = await this.findById(id);
+    // const res = updated.generatedMaps
+    // console.log("RES DANS UPDATE : ", res)
+
+    // if (!updatedEntity) {
+    //   throw new Error("Entity not found after update");
+    // }
+    return this.repo.save(merged);
   }
 }

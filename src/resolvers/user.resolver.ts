@@ -1,13 +1,17 @@
 import User from "entities/user.entity";
 import {
   DeleteResponse,
-  MutationUpdateUserArgs,
+  MutationUpdateMeArgs,
   QueryUsersArgs,
   UserConnection,
 } from "generated/graphql";
-import { MyContext } from "index";
+import {  composeResolvers } from "@graphql-tools/resolvers-composition";
+import { MyContext, ResolverWrapper } from "interfaces/graphql.interface";
+import { GraphQLError } from "graphql";
+import UserEntity from "entities/user.entity";
+import { UtcOffsetResolver } from "graphql-scalars";
 
-export default {
+const userResolver = {
   Query: {
     user: async (
       _: any,
@@ -26,20 +30,20 @@ export default {
     },
   },
   Mutation: {
-    updateUser: async (
+    updateMe: async (
       _: any,
-      { args }: MutationUpdateUserArgs,
-      { services: { userService } }: MyContext,
+      { args }: MutationUpdateMeArgs,
+      { services: { userService }, user }: MyContext,
     ): Promise<User> => {
-      const { id, ...rest } = args;
-      return await userService.updateOne(id, rest);
+      // const { id, ...rest } = args;
+      return await userService.updateOne(user!,args);
     },
-    deleteUser: async (
+    deleteMe: async (
       _: any,
-      { id }: { id: string },
-      { services: { userService } }: MyContext,
+      __: any,
+      { services: { userService }, user }: MyContext,
     ): Promise<DeleteResponse> => {
-      const isDeleted = await userService.deleteOne(id);
+      const isDeleted = await userService.deleteOne(user!);
       const response: DeleteResponse = {
         success: isDeleted,
         Message: isDeleted ? "User successfully deleted." : "Deletion failed.",
@@ -48,3 +52,24 @@ export default {
     },
   },
 };
+
+const isAuthenticated = (): ResolverWrapper => next => (root, args, context, info) => {
+  if (!context.user) {
+    throw new GraphQLError("Please log in.")
+  }
+  return next(root, args, context, info)
+}
+
+// const isMyAccount= (): ResolverWrapper => next => (root, args, context, info) => {
+//   if (args.id !== context?.user?.id) {
+//     throw new GraphQLError("Unauthorized.")
+//   }
+//   return next(root, args, context, info)
+// }
+
+const userResolverWrapper = {
+  "Mutation.*": [isAuthenticated()],
+  "Query.*":[isAuthenticated()]
+}
+
+export default composeResolvers(userResolver, userResolverWrapper)

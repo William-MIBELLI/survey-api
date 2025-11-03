@@ -50,3 +50,4 @@ export type TFindArgs<T> = {
   pagination?: PaginationInput;
   filters?: TFilterInput<T>;
 };
+

@@ -2,7 +2,7 @@ import "reflect-metadata";
 import { ApolloServer } from "@apollo/server";
 import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
 import { expressMiddleware } from "@as-integrations/express5";
-import express, { Request, Response } from "express";
+import express from "express";
 import http from "http";
 import cors from "cors";
 import resolvers from "resolvers";
@@ -13,7 +13,6 @@ import { constraintDirective } from "graphql-constraint-directive";
 import { formatError } from "utils/error.utils";
 import UserEntity from "entities/user.entity";
 import UserService from "services/user.service";
-import UserQueryBuilder from "builders/user.builder";
 import AuthService from "services/auth.service";
 import GenericQueryBuilder from "builders/generic.builder";
 import { User } from "generated/graphql";
@@ -21,16 +20,10 @@ import Cookies from "cookies"
 import TokenEntity from "entities/token.entity";
 import MailService from "services/mail.service";
 import { buildTransporter } from "lib/nodemailer";
+import SurveyEntity from "entities/survey.entity";
+import SurveyService from "services/survey.service";
+import { MyContext } from "interfaces/graphql.interface";
 
-export interface MyContext {
-  req: Request
-  res: Response
-  user?: User | null;
-  services: {
-    userService: UserService;
-    authService: AuthService;
-  };
-}
 const app = express();
 
 const httpServer = http.createServer(app);
@@ -59,13 +52,22 @@ const main = async () => {
 
   await server.start();
 
+  //REPOSITORIES
   const userRepository = appDataSource.getRepository(UserEntity);
   const tokenRepository = appDataSource.getRepository(TokenEntity)
-  const userFilterBuilder = new GenericQueryBuilder(UserEntity);
+  const surveyRepository = appDataSource.getRepository(SurveyEntity)
 
+
+  //FILTER BUILDERS
+  const userFilterBuilder = new GenericQueryBuilder(UserEntity);
+  const surveyFilterBuilder = new GenericQueryBuilder(SurveyEntity)
+
+
+  //SERVICES
   const userService = new UserService(userRepository, userFilterBuilder);
   const mailService = new MailService(buildTransporter())
   const authService = new AuthService(userService, tokenRepository, mailService);
+  const surveyService = new SurveyService(surveyRepository, surveyFilterBuilder)
 
   app.use(
     "/",
@@ -74,7 +76,7 @@ const main = async () => {
 
     expressMiddleware(server, {
       context: async ({ req, res }): Promise<MyContext> => {
-        let user: User | null = null
+        let user: UserEntity | null = null
         const cookie = new Cookies(req, res)
         const token = cookie.get("token")
         if (token) {
@@ -83,7 +85,7 @@ const main = async () => {
         return {
           req, res,
           user,
-          services: { userService, authService },
+          services: { userService, authService, surveyService },
         }
       },
     }),
