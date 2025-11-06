@@ -1,11 +1,13 @@
 import SurveyEntity from "entities/survey.entity";
 import {
   DeleteResponse,
+  MutationAssignCandidatesArgs,
   MutationCreateSurveyArgs,
   MutationUpdateSurveyArgs,
   QuerySurveysArgs,
   Survey,
   SurveyConnection,
+  UserConnection,
 } from "generated/graphql";
 import { GraphQLError } from "graphql";
 import { composeResolvers } from "@graphql-tools/resolvers-composition";
@@ -49,9 +51,9 @@ const surveyResolver = {
       { preload, services: { surveyService } }: MyContext<SurveyEntity>,
     ): Promise<Survey> => {
       if (!preload) {
-        throw new Error("No survey preloaded.");
+        throw new GraphQLError("No survey preloaded.");
       }
-      return surveyService.updateOne(preload.entity,data.args);
+      return surveyService.updateOne(preload.entity, data.args);
     },
     deleteSurvey: async (
       _: any,
@@ -59,7 +61,7 @@ const surveyResolver = {
       { services: { surveyService }, preload }: MyContext<SurveyEntity>,
     ): Promise<DeleteResponse> => {
       if (!preload) {
-        throw new GraphQLError('Unable to delete survey.')
+        throw new GraphQLError("Unable to delete survey.");
       }
       const isDeleted = await surveyService.deleteOne(preload.entity);
       return {
@@ -67,6 +69,23 @@ const surveyResolver = {
         Message: isDeleted ? "Successfully deleted." : "Impossible to delete.",
       };
     },
+    assignCandidates: async (
+      _: any,
+      data: MutationAssignCandidatesArgs,
+      { services: { surveyService, userService }, preload }: MyContext<SurveyEntity>,
+    ) => {
+      if (!preload) {
+        throw new GraphQLError('No survey preloaded.')
+      }
+      const users = await userService.findByProperties({
+        id: {
+          in:[]
+        }
+      })
+      const survey = await surveyService.assignCandidates({ survey: preload.entity, users })
+      return survey
+    },
+    revokeCandidates: async () => {},
   },
   Survey: {
     owner: async (
@@ -80,10 +99,13 @@ const surveyResolver = {
       }
       return user;
     },
+    // candidates: async (parent: SurveyEntity, args: any, ctx: MyContext): Promise<UserConnection> => {
+    //   console.log("ARGS DANS CANDIDAT : ", args, parent)
+    //   // const candidates = await ctx.services.
+    //   return {}  as unknown as UserConnection
+    // }
   },
 };
-
-
 
 const isSurveyFromUser =
   (): ResolverWrapper => (next) => async (root, args, context, info) => {
@@ -95,7 +117,7 @@ const isSurveyFromUser =
   };
 
 const compositionResolver = {
-  "Mutation.{updateSurvey, deleteSurvey}": [isSurveyFromUser()],
+  "Mutation.{updateSurvey, deleteSurvey, assignCandidates}": [isSurveyFromUser()],
 };
 
 export default composeResolvers(surveyResolver, compositionResolver);

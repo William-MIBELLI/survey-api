@@ -45,8 +45,8 @@ export default class SurveyEntity {
   owner: User;
 
   @ManyToMany(() => User)
-  @JoinTable({ name: "user_authorizations" })
-  users: User[];
+  @JoinTable({ name: "candidate_table" })
+  candidates: User[];
 
   @OneToMany(() => Question, (question) => question.survey)
   questions: Question[];
