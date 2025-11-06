@@ -99,11 +99,10 @@ export default abstract class GenericService<T extends ObjectLiteral> {
   }
 
   //RECUPERER VIA PLUSIEURS PROPRIETES
-  public async findByProperties(filters: FindOptionsWhere<T>): Promise<T[]> {
-    const list = await this.repo.find({
-      where: filters
-    })
-    return list
+  public async findByProperties(data: TFilterInput<T>): Promise<T[]> {
+    const query = this.filterBuilder.applyFilters(data).build()
+    const res = await query.getMany()
+    return res
   }
 
   //DELETE
