@@ -79,7 +79,7 @@ const surveyResolver = {
       }
       const users = await userService.findByProperties({
         id: {
-          in:[]
+          in: data.args.ids
         }
       })
       const survey = await surveyService.assignCandidates({ survey: preload.entity, users })
@@ -117,7 +117,7 @@ const isSurveyFromUser =
   };
 
 const compositionResolver = {
-  "Mutation.{updateSurvey, deleteSurvey, assignCandidates}": [isSurveyFromUser()],
+  "Mutation.!createSurvey": [isSurveyFromUser()],
 };
 
 export default composeResolvers(surveyResolver, compositionResolver);

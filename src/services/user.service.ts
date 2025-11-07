@@ -2,7 +2,7 @@ import User from "entities/user.entity";
 import GenericService from "./generic.service";
 import GenericQueryBuilder from "builders/generic.builder";
 import UserEntity from "entities/user.entity";
-import { Repository } from "typeorm";
+import { DeepPartial, Repository } from "typeorm";
 import { SigninInput, SignupInput } from "generated/graphql";
 
 export default class UserService extends GenericService<UserEntity> {
@@ -25,7 +25,7 @@ export default class UserService extends GenericService<UserEntity> {
     return user;
   }
 
-  public async createUserForSeeding(users: SignupInput[]) {
+  public async createUserForSeeding(users: DeepPartial<UserEntity>[]) {
     await this.repo.save(users, { chunk: 500});
   }
 

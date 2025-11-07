@@ -8,7 +8,7 @@ export enum QuestionType {
 }
 
 @Entity()
-export default class Question {
+export default class QuestionEntity {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 

@@ -9,8 +9,8 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
-import User from "./user.entity";
-import Question from "./question.entity";
+import UserEntity from "./user.entity";
+import QuestionEntity from "./question.entity";
 
 @Entity()
 export default class SurveyEntity {
@@ -41,13 +41,13 @@ export default class SurveyEntity {
   @Column({ nullable: false, type: "uuid" })
   ownerId: string;
 
-  @ManyToOne(() => User, (user) => user.surveys, { onDelete: "CASCADE", nullable: false })
-  owner: User;
+  @ManyToOne(() => UserEntity, (user) => user.surveys, { onDelete: "CASCADE", nullable: false })
+  owner: UserEntity;
 
-  @ManyToMany(() => User)
+  @ManyToMany(() => UserEntity, (user) => user.assignedSurveys)
   @JoinTable({ name: "candidate_table" })
-  candidates: User[];
+  candidates: UserEntity[];
 
-  @OneToMany(() => Question, (question) => question.survey)
-  questions: Question[];
+  @OneToMany(() => QuestionEntity, (question) => question.survey)
+  questions: QuestionEntity[];
 }

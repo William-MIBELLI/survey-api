@@ -75,8 +75,14 @@ export default class GenericQueryBuilder<T extends ObjectLiteral> {
       if (isGenericOperation) {
         const type = k as TGenericOperator;
         const operatorSign = operatorMap[type];
-        if (type === "in" || type === "notIn") {
-          qb.andWhere(`${column} ${operatorSign} :(${paramName})`, {
+        if ( type === "notIn") {
+          qb.andWhere(`${column} != ALL(:${paramName})`, {
+            [paramName]: value,
+          });
+          return;
+        }
+        if (type === "in") {
+          qb.andWhere(`${column} = ANY(:${paramName})`, {
             [paramName]: value,
           });
           return;
