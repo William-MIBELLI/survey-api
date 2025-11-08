@@ -2,7 +2,7 @@ import User from "entities/user.entity";
 import GenericService from "./generic.service";
 import GenericQueryBuilder from "builders/generic.builder";
 import UserEntity from "entities/user.entity";
-import { DeepPartial, Repository } from "typeorm";
+import { DeepPartial, Not, Repository, In, ArrayContainedBy, ArrayContains } from "typeorm";
 import { SigninInput, SignupInput } from "generated/graphql";
 
 export default class UserService extends GenericService<UserEntity> {

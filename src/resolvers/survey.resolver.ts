@@ -75,15 +75,14 @@ const surveyResolver = {
       { services: { surveyService, userService }, preload }: MyContext<SurveyEntity>,
     ) => {
       if (!preload) {
-        throw new GraphQLError('No survey preloaded.')
+        throw new GraphQLError("No survey preloaded.");
       }
-      const users = await userService.findByProperties({
-        id: {
-          in: data.args.ids
-        }
-      })
-      const survey = await surveyService.assignCandidates({ survey: preload.entity, users })
-      return survey
+
+      const survey = await surveyService.assignCandidates({
+        survey: preload.entity,
+        ids: data.args.ids
+      });
+      return survey;
     },
     revokeCandidates: async () => {},
   },

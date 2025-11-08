@@ -67,7 +67,7 @@ const main = async () => {
   const userService = new UserService(userRepository, userFilterBuilder);
   const mailService = new MailService(buildTransporter())
   const authService = new AuthService(userService, tokenRepository, mailService);
-  const surveyService = new SurveyService(surveyRepository, surveyFilterBuilder)
+  const surveyService = new SurveyService(surveyRepository, surveyFilterBuilder, userService)
 
   app.use(
     "/",

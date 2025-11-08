@@ -1,39 +1,58 @@
 import SurveyEntity from "entities/survey.entity";
 import GenericService from "./generic.service";
-import { Repository } from "typeorm";
+import { In, Not, Repository } from "typeorm";
 import GenericQueryBuilder from "builders/generic.builder";
 import { UpdateCandidatesInput, UserConnection } from "generated/graphql";
 import UserEntity from "entities/user.entity";
+import UserService from "./user.service";
 
 type TAssignment = {
   survey: SurveyEntity;
-  users: UserEntity[];
+  ids: string[];
 };
 
 export default class SurveyService extends GenericService<SurveyEntity> {
-  constructor(repo: Repository<SurveyEntity>, fb: GenericQueryBuilder<SurveyEntity>) {
-    super(repo, fb);
+  constructor(
+    repo: Repository<SurveyEntity>,
+    filterBuilder: GenericQueryBuilder<SurveyEntity>,
+    protected userService: UserService,
+  ) {
+    super(repo, filterBuilder);
   }
 
-  public async assignCandidates(args: TAssignment) {
+  public async assignCandidates({ survey, ids }: TAssignment) {
+
+    if (ids.length === 0) {
+      return survey
+    }
+
+    const existingCandidatesQuery = this.repo
+      .createQueryBuilder("survey")
+      .leftJoin("survey.candidates", "candidate")
+      .where("survey.id = :surveyId", { surveyId: survey.id })
+      .andWhere("candidate.id IN (:...newCandidateIds)", { newCandidateIds: ids })
+      .select("candidate.id", "id");
+
+    const existingCandidates = await existingCandidatesQuery.getRawMany();
+    const existingCandidateIds = existingCandidates.map((c) => c.id);
+
+    const idsToAdd = ids.filter((id) => !existingCandidateIds.includes(id));
+
+    if (idsToAdd.length === 0) {
+      return survey;
+    }
+
     try {
-      this.repo
+      await this.repo
         .createQueryBuilder()
         .relation("candidates")
-        .of(args.survey.id)
-        .add(args.users)
- 
-        // if (!args.survey.candidates) {
-        //   args.survey.candidates = [];
-        // }
-    
-        // args.survey.candidates.push(...args.users);
-    
-        // return await this.repo.save(args.survey);
+        .of(survey.id)
+        .add(idsToAdd);
     } catch (error: any) {
-      console.log("ERROR RELATION : ", error?.message)
+      console.error("Failed to add candidates to survey:", error?.message);
+      throw new Error("Could not assign candidates.");
     }
-    return args.survey
+    return survey;
   }
 
   public async revokeCandidates(args: UpdateCandidatesInput) {}
