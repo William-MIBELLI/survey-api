@@ -21,20 +21,29 @@ export default class SurveyService extends GenericService<SurveyEntity> {
   }
 
   public async assignCandidates({ survey, ids }: TAssignment) {
-
     if (ids.length === 0) {
-      return survey
+      return survey;
     }
 
-    const existingCandidatesQuery = this.repo
-      .createQueryBuilder("survey")
-      .leftJoin("survey.candidates", "candidate")
-      .where("survey.id = :surveyId", { surveyId: survey.id })
-      .andWhere("candidate.id IN (:...newCandidateIds)", { newCandidateIds: ids })
-      .select("candidate.id", "id");
+    const res = await this.repo.findOne({
+      where: {
+        id: survey.id,
+        candidates: {
+          id: In(ids)
+        }
+      },
+      relations: {
+        candidates: true
+      },
+      select: {
+        candidates: {
+          id:true
+        },
+        id: true
+      }
+    })
 
-    const existingCandidates = await existingCandidatesQuery.getRawMany();
-    const existingCandidateIds = existingCandidates.map((c) => c.id);
+    const existingCandidateIds = res?.candidates.map((c) => c.id) || [];
 
     const idsToAdd = ids.filter((id) => !existingCandidateIds.includes(id));
 
@@ -55,5 +64,5 @@ export default class SurveyService extends GenericService<SurveyEntity> {
     return survey;
   }
 
-  public async revokeCandidates(args: UpdateCandidatesInput) {}
+  public async revokeCandidates(args: TAssignment) {}
 }

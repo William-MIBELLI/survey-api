@@ -3,6 +3,7 @@ import {
   DeleteResponse,
   MutationAssignCandidatesArgs,
   MutationCreateSurveyArgs,
+  MutationRevokeCandidatesArgs,
   MutationUpdateSurveyArgs,
   QuerySurveysArgs,
   Survey,
@@ -80,11 +81,20 @@ const surveyResolver = {
 
       const survey = await surveyService.assignCandidates({
         survey: preload.entity,
-        ids: data.args.ids
+        ids: data.args.ids,
       });
       return survey;
     },
-    revokeCandidates: async () => {},
+    revokeCandidates: async (
+      _: any,
+      data: MutationRevokeCandidatesArgs,
+      { services: { surveyService }, preload }: MyContext<SurveyEntity>,
+    ) => {
+      const survey = await surveyService.revokeCandidates({
+        survey: preload?.entity!,
+        ids: data.args.ids,
+      });
+    },
   },
   Survey: {
     owner: async (
