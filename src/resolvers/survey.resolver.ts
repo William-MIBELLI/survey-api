@@ -94,6 +94,7 @@ const surveyResolver = {
         survey: preload?.entity!,
         ids: data.args.ids,
       });
+      return survey
     },
   },
   Survey: {

@@ -24,27 +24,15 @@ export default class SurveyService extends GenericService<SurveyEntity> {
     if (ids.length === 0) {
       return survey;
     }
+    const existingCandidatesQuery = this.repo
+      .createQueryBuilder("survey")
+      .leftJoin("survey.candidates", "candidate")
+      .where("survey.id = :surveyId", { surveyId: survey.id })
+      .andWhere("candidate.id IN (:...ids)", { ids })
+      .select("candidate.id", "id");
 
-    const res = await this.repo.findOne({
-      where: {
-        id: survey.id,
-        candidates: {
-          id: In(ids)
-        }
-      },
-      relations: {
-        candidates: true
-      },
-      select: {
-        candidates: {
-          id:true
-        },
-        id: true
-      }
-    })
-
-    const existingCandidateIds = res?.candidates.map((c) => c.id) || [];
-
+    const existingCandidates = await existingCandidatesQuery.getRawMany();
+    const existingCandidateIds = existingCandidates.map((c) => c.id);
     const idsToAdd = ids.filter((id) => !existingCandidateIds.includes(id));
 
     if (idsToAdd.length === 0) {
@@ -64,5 +52,17 @@ export default class SurveyService extends GenericService<SurveyEntity> {
     return survey;
   }
 
-  public async revokeCandidates(args: TAssignment) {}
+  public async revokeCandidates({ survey, ids }: TAssignment): Promise<SurveyEntity> {
+    try {
+      await this.repo
+        .createQueryBuilder()
+        .relation("candidates")
+        .of(survey.id)
+        .remove(ids);
+    } catch (error: any) {
+      console.error("Failed to revoke candidates from survey:", error?.message);
+      throw new Error("Could not revoke candidates.");
+    }
+    return survey;
+  }
 }
