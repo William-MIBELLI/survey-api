@@ -18,6 +18,7 @@ import { MyContext, ResolverWrapper } from "interfaces/graphql.interface";
 import { QueryBuilder } from "typeorm";
 import UserEntity from "entities/user.entity";
 import { appDataSource } from "lib/datasource";
+import { TConnection } from "interfaces/generic.interface";
 
 const surveyResolver = {
   Query: {
@@ -25,15 +26,15 @@ const surveyResolver = {
       _: any,
       { id }: { id: string },
       { services: { surveyService } }: MyContext,
-    ): Promise<Survey | null> => {
-      return (await surveyService.findById(id)) as unknown as Survey;
+    ): Promise<SurveyEntity | null> => {
+      return await surveyService.findById(id);
     },
     surveys: async (
       _: any,
       data: QuerySurveysArgs,
       { services: { surveyService } }: MyContext,
-    ): Promise<SurveyConnection> => {
-      return (await surveyService.findAll(data.args)) as unknown as SurveyConnection;
+    ): Promise<TConnection<SurveyEntity>> => {
+      return await surveyService.findAll(data.args);
     },
   },
   Mutation: {
@@ -41,7 +42,7 @@ const surveyResolver = {
       _: any,
       data: MutationCreateSurveyArgs,
       { services: { surveyService }, user }: MyContext,
-    ): Promise<Survey> => {
+    ): Promise<SurveyEntity> => {
       if (!user) {
         throw new GraphQLError("You need to be logged in for create a survey.", {
           extensions: {
@@ -49,20 +50,20 @@ const surveyResolver = {
           },
         });
       }
-      return (await surveyService.createOne({
+      return await surveyService.createOne({
         ...data.args,
         ownerId: user.id,
-      })) as unknown as Survey;
+      });
     },
     updateSurvey: async (
       _: any,
       data: MutationUpdateSurveyArgs,
       { preload, services: { surveyService } }: MyContext<SurveyEntity>,
-    ): Promise<Survey> => {
+    ): Promise<SurveyEntity> => {
       if (!preload) {
         throw new GraphQLError("No survey preloaded.");
       }
-      return surveyService.updateOne(preload.entity, data.args) as unknown as Survey;
+      return surveyService.updateOne(preload.entity, data.args);
     },
     deleteSurvey: async (
       _: any,
