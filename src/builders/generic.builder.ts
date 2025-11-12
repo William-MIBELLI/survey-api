@@ -22,10 +22,14 @@ export default class GenericQueryBuilder<T extends ObjectLiteral> {
   protected tableName: string;
   protected metadata: EntityMetadata;
 
-  constructor(entity: EntityTarget<T>) {
+  constructor(entity: EntityTarget<T>, initialQuery?: SelectQueryBuilder<T>) {
     const repo = appDataSource.getRepository(entity);
     this.tableName = repo.metadata.tableName;
-    this.qb = repo.createQueryBuilder(this.tableName);
+    if (initialQuery) {
+      this.qb = initialQuery
+    } else {
+      this.qb = repo.createQueryBuilder(this.tableName);
+    }
     this.metadata = repo.metadata;
     this.initialiseFilters();
   }
@@ -43,7 +47,6 @@ export default class GenericQueryBuilder<T extends ObjectLiteral> {
   }
 
   protected initialiseFilters() {
-    //  console.log('INITILIASE FILTER : ', this.metadata.columns)
     this.metadata.columns.forEach((column) => {
       if (column.type === String || column.type === "varchar" || column.type === "text") {
         this.filterHandlers.set(column.propertyName, this.applyStringFilter);

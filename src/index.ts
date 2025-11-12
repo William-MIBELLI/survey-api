@@ -59,15 +59,15 @@ const main = async () => {
 
 
   //FILTER BUILDERS
-  const userFilterBuilder = new GenericQueryBuilder(UserEntity);
-  const surveyFilterBuilder = new GenericQueryBuilder(SurveyEntity)
+  // const userFilterBuilder = new GenericQueryBuilder(UserEntity);
+  // const surveyFilterBuilder = new GenericQueryBuilder(SurveyEntity)
 
 
   //SERVICES
-  const userService = new UserService(userRepository, userFilterBuilder);
+  const userService = new UserService(userRepository);
   const mailService = new MailService(buildTransporter())
   const authService = new AuthService(userService, tokenRepository, mailService);
-  const surveyService = new SurveyService(surveyRepository, surveyFilterBuilder, userService)
+  const surveyService = new SurveyService(surveyRepository, userService)
 
   app.use(
     "/",

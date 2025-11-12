@@ -10,9 +10,8 @@ export default class UserService extends GenericService<UserEntity> {
 
   public constructor(
     repo: Repository<UserEntity>,
-    filterBuilder: GenericQueryBuilder<UserEntity>,
   ) {
-    super(repo, filterBuilder);
+    super(repo);
   }
 
   public async findUserForSignin(args: SigninInput): Promise<UserEntity | null> {

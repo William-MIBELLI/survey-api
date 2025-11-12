@@ -9,10 +9,15 @@ import {
   Survey,
   SurveyConnection,
   UserConnection,
+  UserFilter,
+  UserFilterInput,
 } from "generated/graphql";
 import { GraphQLError } from "graphql";
 import { composeResolvers } from "@graphql-tools/resolvers-composition";
 import { MyContext, ResolverWrapper } from "interfaces/graphql.interface";
+import { QueryBuilder } from "typeorm";
+import UserEntity from "entities/user.entity";
+import { appDataSource } from "lib/datasource";
 
 const surveyResolver = {
   Query: {
@@ -21,14 +26,14 @@ const surveyResolver = {
       { id }: { id: string },
       { services: { surveyService } }: MyContext,
     ): Promise<Survey | null> => {
-      return await surveyService.findById(id);
+      return (await surveyService.findById(id)) as unknown as Survey;
     },
     surveys: async (
       _: any,
       data: QuerySurveysArgs,
       { services: { surveyService } }: MyContext,
     ): Promise<SurveyConnection> => {
-      return await surveyService.findAll(data.args);
+      return (await surveyService.findAll(data.args)) as unknown as SurveyConnection;
     },
   },
   Mutation: {
@@ -44,7 +49,10 @@ const surveyResolver = {
           },
         });
       }
-      return await surveyService.createOne({ ...data.args, ownerId: user.id });
+      return (await surveyService.createOne({
+        ...data.args,
+        ownerId: user.id,
+      })) as unknown as Survey;
     },
     updateSurvey: async (
       _: any,
@@ -54,7 +62,7 @@ const surveyResolver = {
       if (!preload) {
         throw new GraphQLError("No survey preloaded.");
       }
-      return surveyService.updateOne(preload.entity, data.args);
+      return surveyService.updateOne(preload.entity, data.args) as unknown as Survey;
     },
     deleteSurvey: async (
       _: any,
@@ -94,7 +102,7 @@ const surveyResolver = {
         survey: preload?.entity!,
         ids: data.args.ids,
       });
-      return survey
+      return survey;
     },
   },
   Survey: {
@@ -109,11 +117,20 @@ const surveyResolver = {
       }
       return user;
     },
-    // candidates: async (parent: SurveyEntity, args: any, ctx: MyContext): Promise<UserConnection> => {
-    //   console.log("ARGS DANS CANDIDAT : ", args, parent)
-    //   // const candidates = await ctx.services.
-    //   return {}  as unknown as UserConnection
-    // }
+    candidates: async (
+      parent: SurveyEntity,
+      args: UserFilterInput,
+      { services: { userService } }: MyContext,
+    ): Promise<UserConnection> => {
+      const query = appDataSource
+        .getRepository(UserEntity)
+        .createQueryBuilder("user")
+        .innerJoin("user.assignedSurveys", "survey", "survey.id = :surveyId", {
+          surveyId: parent.id,
+        });
+      const candidates = await userService.findAll(args, query);
+      return candidates;
+    },
   },
 };
 

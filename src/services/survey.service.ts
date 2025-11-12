@@ -14,10 +14,9 @@ type TAssignment = {
 export default class SurveyService extends GenericService<SurveyEntity> {
   constructor(
     repo: Repository<SurveyEntity>,
-    filterBuilder: GenericQueryBuilder<SurveyEntity>,
     protected userService: UserService,
   ) {
-    super(repo, filterBuilder);
+    super(repo);
   }
 
   public async assignCandidates({ survey, ids }: TAssignment) {

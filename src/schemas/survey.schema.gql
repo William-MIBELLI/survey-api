@@ -10,7 +10,7 @@ type Survey {
   owner: User!
   createdAt: Date!
   updatedAt: Date!
-  # candidates(args: UserFilterInput!): UserConnection!
+  candidates(args: UserFilterInput!): UserConnection!
 }
 
 type SurveyEdge {
