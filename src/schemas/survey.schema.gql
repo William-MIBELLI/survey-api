@@ -10,6 +10,7 @@ type Survey {
   owner: User!
   createdAt: Date!
   updatedAt: Date!
+  candidates(args: UserFilterInput!): UserConnection!
 }
 
 type SurveyEdge {
@@ -33,6 +34,13 @@ type Mutation {
   createSurvey(args: CreateSurveyInput!): Survey!
   updateSurvey(args: UpdateSurveyInput!): Survey!
   deleteSurvey(id: UUID!): DeleteResponse!
+  assignCandidates(args: UpdateCandidatesInput!): Survey!
+  revokeCandidates(args: UpdateCandidatesInput!): Survey!
+}
+
+input UpdateCandidatesInput {
+  surveyId: UUID!
+  ids: [UUID!]!
 }
 
 input CreateSurveyInput {

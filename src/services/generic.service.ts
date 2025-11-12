@@ -1,16 +1,21 @@
 import GenericQueryBuilder from "builders/generic.builder";
-import { PaginationInput} from "generated/graphql";
+import UserEntity from "entities/user.entity";
+import { PaginationInput } from "generated/graphql";
 import { Edge, TConnection, TFilterInput, TFindArgs } from "interfaces/generic.interface";
-import { DeepPartial, FindOptions, FindOptionsWhere, ObjectLiteral, Repository } from "typeorm";
+import {
+  DeepPartial,
+  EntityTarget,
+  ObjectLiteral,
+  QueryBuilder,
+  Repository,
+  SelectQueryBuilder,
+} from "typeorm";
 import { cursorEncoder } from "utils/pagination.utils";
 
 export default abstract class GenericService<T extends ObjectLiteral> {
-
-  protected filterBuilder: GenericQueryBuilder<T>;
-
-  constructor(protected repo: Repository<T>, fb: GenericQueryBuilder<T>) {
-    this.filterBuilder = fb
-  }
+  constructor(
+    protected repo: Repository<T>,
+  ) {}
 
   //CREER UNE INSTANCE DE T
   public async createOne(entity: DeepPartial<T>) {
@@ -24,17 +29,22 @@ export default abstract class GenericService<T extends ObjectLiteral> {
   }
 
   //RECUPERER TOUTES LES INSTANCES
-  public async findAll(data: TFindArgs<T>): Promise<TConnection<T>> {
+  public async findAll(
+    data: TFindArgs<T>,
+    initialFilter?: SelectQueryBuilder<T>,
+  ): Promise<TConnection<T>> {
     const { pagination, ...filters } = data;
+    const filterBuilder = new GenericQueryBuilder<T>(this.repo.target, initialFilter)
+
     if (filters) {
-      this.filterBuilder.applyFilters(filters as TFilterInput<T>);
+      filterBuilder.applyFilters(filters as TFilterInput<T>);
     }
 
     if (pagination) {
-      this.filterBuilder.applyPagination(pagination);
+      filterBuilder.applyPagination(pagination);
     }
 
-    const query = this.filterBuilder.build();
+    const query = filterBuilder.build();
     const list = await query.getMany();
     const count = await query.getCount();
 
@@ -100,14 +110,15 @@ export default abstract class GenericService<T extends ObjectLiteral> {
 
   //RECUPERER VIA PLUSIEURS PROPRIETES
   public async findByProperties(data: TFilterInput<T>): Promise<T[]> {
-    const query = this.filterBuilder.applyFilters(data).build()
-    const res = await query.getMany()
-    return res
+    const filterBuilder = new GenericQueryBuilder<T>(this.repo.target)
+    const query = filterBuilder.applyFilters(data).build();
+    const res = await query.getMany();
+    return res;
   }
 
   //DELETE
   public async deleteOne(entityToDelete: T): Promise<boolean> {
-    const deleted = await this.repo.remove(entityToDelete)
+    const deleted = await this.repo.remove(entityToDelete);
     if (!deleted) {
       return false;
     }
@@ -116,12 +127,11 @@ export default abstract class GenericService<T extends ObjectLiteral> {
 
   //UPDATE
   public async updateOne(initialEntity: T, partialEntity: DeepPartial<T>): Promise<T> {
-
-    const merged = this.repo.merge( initialEntity, partialEntity )
+    const merged = this.repo.merge(initialEntity, partialEntity);
     // const updated = await this.repo.save(toSaved, {})
     // if (!updated) {
     //   throw new Error("Nothing affected.");
-    
+
     // const updatedEntity = await this.findById(id);
     // const res = updated.generatedMaps
     // console.log("RES DANS UPDATE : ", res)
