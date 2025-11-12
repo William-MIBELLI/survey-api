@@ -6,10 +6,7 @@ import {
   MutationRevokeCandidatesArgs,
   MutationUpdateSurveyArgs,
   QuerySurveysArgs,
-  Survey,
-  SurveyConnection,
   UserConnection,
-  UserFilter,
   UserFilterInput,
 } from "generated/graphql";
 import { GraphQLError } from "graphql";
@@ -135,7 +132,7 @@ const surveyResolver = {
   },
 };
 
-const isSurveyFromUser =
+export const isSurveyFromUser =
   (): ResolverWrapper => (next) => async (root, args, context, info) => {
     const survey = await context.services.surveyService.findById(args.id);
     if (!survey || !context.user || survey.ownerId !== context.user.id) {
