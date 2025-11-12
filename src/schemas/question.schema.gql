@@ -1,0 +1,62 @@
+
+type Question {
+  id: UUID!
+  label: String!
+  withArgs: Boolean!
+  isMandatory: Boolean!
+  dependsOn: UUID
+  survey: Survey!
+  createdAt: Date!
+  updatedAt: Date!
+}
+
+type QuestionEdge {
+  cursor: String!
+  node: Question!
+}
+
+type QuestionConnection {
+  totalCount: Int!
+  edges: [QuestionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type Query {
+  question(id: UUID!): Question
+  questions(args: QuestionFilterInput!): QuestionConnection!
+}
+
+type Mutation {
+  createQuestion(args: CreateQuestionInput!): Question!
+  updateQuestion(args: UpdateQuestionInput!): Question!
+  deleteQuestion(id: UUID!): DeleteResponse!
+}
+
+input CreateQuestionInput {
+  label: String!
+  withArgs: Boolean
+  isMandatory: Boolean
+  dependsOn: UUID
+  surveyId: UUID!
+}
+
+input UpdateQuestionInput {
+  id: UUID!
+  label: String
+  withArgs: Boolean
+  isMandatory: Boolean
+  dependsOn: UUID
+}
+
+input QuestionFilter {
+  id: UUID
+  label: StringFilterInput
+  withArgs: BooleanFilterInput
+  isMandatory: BooleanFilterInput
+  dependsOn: StringFilterInput
+}
+
+input QuestionFilterInput {
+  filters: QuestionFilter
+  pagination: PaginationInput
+}
