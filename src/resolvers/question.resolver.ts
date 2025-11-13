@@ -9,6 +9,8 @@ import { TConnection } from "interfaces/generic.interface";
 import { MyContext } from "interfaces/graphql.interface";
 import { composeResolvers } from "@graphql-tools/resolvers-composition";
 import { isSurveyFromUser } from "./survey.resolver";
+import SurveyEntity from "entities/survey.entity";
+import { GraphQLError } from "graphql";
 
 const questionResolver = {
   Query: {
@@ -50,14 +52,29 @@ const questionResolver = {
       const isDeleted = await questionService.deleteOne(preload?.entity!);
       return {
         success: isDeleted,
-        Message: isDeleted ? "Question successfully deleted." : "Unable to delete the question."
+        Message: isDeleted
+          ? "Question successfully deleted."
+          : "Unable to delete the question.",
+      };
+    },
+  },
+  Question: {
+    survey: async (
+      parent: QuestionEntity,
+      _: any,
+      { services: { surveyService }}: MyContext,
+    ): Promise<SurveyEntity> => {
+      const survey = await surveyService.findById(parent.surveyId)
+      if (!survey) {
+        throw new GraphQLError("No survey found for this question.")
       }
+      return survey
     },
   },
 };
 
 const compositionResolver = {
-  "Mutation.*": [isSurveyFromUser()]
-}
+  "Mutation.*": [isSurveyFromUser()],
+};
 
 export default composeResolvers(questionResolver, compositionResolver);

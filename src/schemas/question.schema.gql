@@ -1,8 +1,13 @@
+enum QuestionType {
+  OPEN
+  SIMPLE
+  MULTIPLE
+}
 
 type Question {
   id: UUID!
   label: String!
-  withArgs: Boolean!
+  type: QuestionType!
   isMandatory: Boolean!
   dependsOn: UUID
   survey: Survey!
@@ -34,26 +39,30 @@ type Mutation {
 
 input CreateQuestionInput {
   label: String!
-  withArgs: Boolean
   isMandatory: Boolean
   dependsOn: UUID
   surveyId: UUID!
+  type: QuestionType!
+}
+
+input QuestionTypeFilter {
+  equals: QuestionType
 }
 
 input UpdateQuestionInput {
   id: UUID!
   label: String
-  withArgs: Boolean
   isMandatory: Boolean
   dependsOn: UUID
+  type: QuestionType
 }
 
 input QuestionFilter {
   id: UUID
   label: StringFilterInput
-  withArgs: BooleanFilterInput
   isMandatory: BooleanFilterInput
   dependsOn: StringFilterInput
+  type: QuestionTypeFilter
 }
 
 input QuestionFilterInput {
