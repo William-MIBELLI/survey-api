@@ -147,7 +147,7 @@ const surveyResolver = {
   },
 };
 
-export const isSurveyFromUser =
+const isSurveyFromUser =
   (): ResolverWrapper => (next) => async (root, args, context, info) => {
     const survey = await context.services.surveyService.findById(args.id);
     if (!survey || !context.user || survey.ownerId !== context.user.id) {

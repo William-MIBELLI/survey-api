@@ -6,11 +6,11 @@ import {
   QueryQuestionsArgs,
 } from "generated/graphql";
 import { TConnection } from "interfaces/generic.interface";
-import { MyContext } from "interfaces/graphql.interface";
+import { MyContext, ResolverWrapper } from "interfaces/graphql.interface";
 import { composeResolvers } from "@graphql-tools/resolvers-composition";
-import { isSurveyFromUser } from "./survey.resolver";
 import SurveyEntity from "entities/survey.entity";
 import { GraphQLError } from "graphql";
+import { appDataSource } from "lib/datasource";
 
 const questionResolver = {
   Query: {
@@ -62,19 +62,35 @@ const questionResolver = {
     survey: async (
       parent: QuestionEntity,
       _: any,
-      { services: { surveyService }}: MyContext,
+      { services: { surveyService } }: MyContext,
     ): Promise<SurveyEntity> => {
-      const survey = await surveyService.findById(parent.surveyId)
+      const survey = await surveyService.findById(parent.surveyId);
       if (!survey) {
-        throw new GraphQLError("No survey found for this question.")
+        throw new GraphQLError("No survey found for this question.");
       }
-      return survey
+      return survey;
     },
   },
 };
 
+const isQuestionFromUser =
+  (): ResolverWrapper => (next) => async (root, args, context, info) => {
+    const question = await appDataSource.getRepository(QuestionEntity).findOne({
+      where: {
+        id: args.id,
+      },
+      relations: {
+        survey: true,
+      },
+    });
+    if (!question || !context.user || question.survey.ownerId !== context.user.id) {
+      throw new GraphQLError("Forbidden.");
+    }
+    return next(root, args, { ...context, preload: { entity: question } }, info);
+  };
+
 const compositionResolver = {
-  "Mutation.*": [isSurveyFromUser()],
+  "Mutation.!createQuestion": [isQuestionFromUser()],
 };
 
 export default composeResolvers(questionResolver, compositionResolver);
