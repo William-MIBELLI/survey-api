@@ -1,6 +1,15 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from "typeorm";
 import Survey from "./survey.entity";
 import { QuestionType } from "generated/graphql";
+import OptionEntity from "./option.entity";
 
 // export enum QuestionType {
 //   OPEN,
@@ -14,20 +23,29 @@ export default class QuestionEntity {
   id: string;
 
   @Column()
-  label: string
+  label: string;
 
   @Column({ type: "enum", enum: QuestionType })
-  type: QuestionType
+  type: QuestionType;
 
   @Column({ default: true, name: "is_mandatory" })
-  isMandatory: boolean
+  isMandatory: boolean;
 
   @Column({ type: "uuid", nullable: true })
-  dependsOn?: string
+  dependsOn?: string;
 
   @Column()
-  surveyId: string
+  surveyId: string;
 
-  @ManyToOne(() => Survey, (survey) => survey.questions, { onDelete: "CASCADE"})
-  survey: Survey
+  @CreateDateColumn({ type: "timestamptz", precision: 3 })
+  createdAt: Date;
+
+  @UpdateDateColumn({ type: "timestamptz", precision: 3 })
+  updatedAt: Date;
+
+  @ManyToOne(() => Survey, (survey) => survey.questions, { onDelete: "CASCADE" })
+  survey: Survey;
+
+  @OneToMany(() => OptionEntity, (option) => option.question)
+  options: OptionEntity[];
 }

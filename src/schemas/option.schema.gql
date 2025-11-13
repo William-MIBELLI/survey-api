@@ -1,0 +1,59 @@
+
+type Option {
+  id: UUID!
+  position: Int!
+  label: String!
+  withArgs: Boolean!
+  question: Question!
+  createdAt: Date!
+  updatedAt: Date!
+}
+type OptionEdges {
+  cursor: String!
+  node: Option!
+}
+
+type OptionConnection {
+  count: Int!
+  edges: [OptionEdges!]!
+  pageInfo: PageInfo!
+}
+
+type Query {
+  option(id: UUID!): Option
+  options(args: OptionsFilterInput!): OptionConnection!
+}
+
+type Mutation {
+  createOption(args: CreateOptionInput!): Option!
+  deleteOption(id: UUID!): DeleteResponse!
+  updateOption(args: UpdateOptionInput!): Option!
+}
+
+input CreateOptionInput {
+  position: Int!
+  label: String!
+  withArgs: Boolean!
+  questionId: UUID!
+}
+
+input UpdateOptionInput {
+  id: UUID!
+  position: Int
+  label: String
+  withArgs: Boolean
+}
+
+input OptionFilter {
+  id: IdFilterInput
+  position: IntFilterInput
+  label: StringFilterInput
+  withArgs: BooleanFilterInput
+  createdAt: DateFilterInput
+  updatedAt: DateFilterInput
+}
+
+input OptionsFilterInput {
+  filters: OptionFilter
+  pagination: PaginationInput
+}
