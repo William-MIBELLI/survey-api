@@ -23,6 +23,8 @@ import { buildTransporter } from "lib/nodemailer";
 import SurveyEntity from "entities/survey.entity";
 import SurveyService from "services/survey.service";
 import { MyContext } from "interfaces/graphql.interface";
+import QuestionEntity from "entities/question.entity";
+import QuestionService from "services/question.service";
 
 const app = express();
 
@@ -56,6 +58,7 @@ const main = async () => {
   const userRepository = appDataSource.getRepository(UserEntity);
   const tokenRepository = appDataSource.getRepository(TokenEntity)
   const surveyRepository = appDataSource.getRepository(SurveyEntity)
+  const questionRepository = appDataSource.getRepository(QuestionEntity)
 
 
   //FILTER BUILDERS
@@ -68,6 +71,7 @@ const main = async () => {
   const mailService = new MailService(buildTransporter())
   const authService = new AuthService(userService, tokenRepository, mailService);
   const surveyService = new SurveyService(surveyRepository, userService)
+  const questionService = new QuestionService(questionRepository)
 
   app.use(
     "/",
@@ -85,7 +89,7 @@ const main = async () => {
         return {
           req, res,
           user,
-          services: { userService, authService, surveyService },
+          services: { userService, authService, surveyService, questionService },
         }
       },
     }),

@@ -6,10 +6,8 @@ import {
   MutationRevokeCandidatesArgs,
   MutationUpdateSurveyArgs,
   QuerySurveysArgs,
-  Survey,
-  SurveyConnection,
+  QuestionFilterInput,
   UserConnection,
-  UserFilter,
   UserFilterInput,
 } from "generated/graphql";
 import { GraphQLError } from "graphql";
@@ -19,6 +17,7 @@ import { QueryBuilder } from "typeorm";
 import UserEntity from "entities/user.entity";
 import { appDataSource } from "lib/datasource";
 import { TConnection } from "interfaces/generic.interface";
+import QuestionEntity from "entities/question.entity";
 
 const surveyResolver = {
   Query: {
@@ -131,6 +130,19 @@ const surveyResolver = {
         });
       const candidates = await userService.findAll(args, query);
       return candidates;
+    },
+    questions: async (
+      parent: SurveyEntity,
+      args: QuestionFilterInput,
+      { services: { questionService }}: MyContext,
+    ): Promise<TConnection<QuestionEntity>> => {
+      const query = appDataSource
+        .getRepository(QuestionEntity)
+        .createQueryBuilder("question")
+        .innerJoin("question.survey", "survey", "survey.id = :surveyId", {
+          surveyId: parent.id,
+        });
+      return await questionService.findAll(args, query)
     },
   },
 };

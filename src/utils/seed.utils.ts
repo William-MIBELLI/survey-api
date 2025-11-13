@@ -28,7 +28,6 @@ const seedUser = async () => {
   // }))
   await new UserService(
     appDataSource.getRepository(UserEntity),
-    new UserQueryBuilder(),
   ).createUserForSeeding(users);
 };
 

@@ -1,0 +1,71 @@
+enum QuestionType {
+  OPEN
+  SIMPLE
+  MULTIPLE
+}
+
+type Question {
+  id: UUID!
+  label: String!
+  type: QuestionType!
+  isMandatory: Boolean!
+  dependsOn: UUID
+  survey: Survey!
+  createdAt: Date!
+  updatedAt: Date!
+}
+
+type QuestionEdge {
+  cursor: String!
+  node: Question!
+}
+
+type QuestionConnection {
+  totalCount: Int!
+  edges: [QuestionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type Query {
+  question(id: UUID!): Question
+  questions(args: QuestionFilterInput!): QuestionConnection!
+}
+
+type Mutation {
+  createQuestion(args: CreateQuestionInput!): Question!
+  updateQuestion(args: UpdateQuestionInput!): Question!
+  deleteQuestion(id: UUID!): DeleteResponse!
+}
+
+input CreateQuestionInput {
+  label: String!
+  isMandatory: Boolean
+  dependsOn: UUID
+  surveyId: UUID!
+  type: QuestionType!
+}
+
+input QuestionTypeFilter {
+  equals: QuestionType
+}
+
+input UpdateQuestionInput {
+  id: UUID!
+  label: String
+  isMandatory: Boolean
+  dependsOn: UUID
+  type: QuestionType
+}
+
+input QuestionFilter {
+  id: UUID
+  label: StringFilterInput
+  isMandatory: BooleanFilterInput
+  dependsOn: StringFilterInput
+  type: QuestionTypeFilter
+}
+
+input QuestionFilterInput {
+  filters: QuestionFilter
+  pagination: PaginationInput
+}
