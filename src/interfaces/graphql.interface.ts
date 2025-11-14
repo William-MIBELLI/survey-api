@@ -1,4 +1,3 @@
-import { User } from "generated/graphql";
 import { GraphQLFieldResolver } from "graphql";
 import AuthService from "services/auth.service";
 import SurveyService from "services/survey.service";
@@ -6,6 +5,7 @@ import UserService from "services/user.service";
 import { ObjectLiteral } from "typeorm";
 import { Request, Response } from "express";
 import UserEntity from "entities/user.entity";
+import QuestionService from "services/question.service";
 
 export type ResolverWrapper<TSource = any, TArgs = { id: string }, TResult = any> = (
   next: GraphQLFieldResolver<TSource, MyContext, TArgs, TResult>,
@@ -18,7 +18,8 @@ export interface MyContext<T extends ObjectLiteral = {}> {
   services: {
     userService: UserService;
     authService: AuthService;
-    surveyService: SurveyService
+    surveyService: SurveyService;
+    questionService: QuestionService;
   };
   preload?: {
     entity: T

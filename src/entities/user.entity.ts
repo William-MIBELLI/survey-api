@@ -1,8 +1,10 @@
+
 import {
   BeforeInsert,
   Column,
   CreateDateColumn,
   Entity,
+  ManyToMany,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -39,6 +41,9 @@ export default class UserEntity {
 
   @OneToMany(() => Survey, (survey) => survey.owner)
   surveys: SurveyEntity[];
+  
+  @ManyToMany(() => Survey, (survey) => survey.candidates)
+  assignedSurveys: SurveyEntity[]
 
   @BeforeInsert()
   async hashPassword() {

@@ -1,14 +1,15 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import Survey from "./survey.entity";
+import { QuestionType } from "generated/graphql";
 
-export enum QuestionType {
-  OPEN,
-  SIMPLE,
-  MULTIPLE
-}
+// export enum QuestionType {
+//   OPEN,
+//   SIMPLE,
+//   MULTIPLE
+// }
 
 @Entity()
-export default class Question {
+export default class QuestionEntity {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
@@ -17,9 +18,6 @@ export default class Question {
 
   @Column({ type: "enum", enum: QuestionType })
   type: QuestionType
-
-  @Column({ name: "with_args"})
-  withArgs: boolean
 
   @Column({ default: true, name: "is_mandatory" })
   isMandatory: boolean

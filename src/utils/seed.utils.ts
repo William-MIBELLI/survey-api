@@ -4,27 +4,30 @@ import { appDataSource } from "lib/datasource";
 import { SignupInput } from "generated/graphql";
 import UserEntity from "entities/user.entity";
 import UserQueryBuilder from "builders/user.builder";
+import argon2 from "argon2"
+import { DeepPartial } from "typeorm";
 
 const seedUser = async () => {
+  const hash = await argon2.hash('jambon', {
+        type: argon2.argon2id,
+      });
   const createRandomUser = () => {
-    const user: SignupInput = {
+    const user: DeepPartial<UserEntity> = {
       email: faker.internet.email(),
       isPremium: Math.random() > 0.5,
-      password: "jambon",
-      confirmPassword: "jambon",
+      password: hash,
       firstname: faker.person.firstName(),
       lastname: faker.person.lastName(),
     };
     return user;
   };
-  const users = faker.helpers.multiple(createRandomUser, { count: 500 });
+  const users =  faker.helpers.multiple(createRandomUser, { count: 500 });
   // await UserService.getInstance().repo.insert(users)
   // await Promise.all(users.map(user => {
   //   userService.createOne(user)
   // }))
   await new UserService(
     appDataSource.getRepository(UserEntity),
-    new UserQueryBuilder(),
   ).createUserForSeeding(users);
 };
 
