@@ -25,6 +25,8 @@ import SurveyService from "services/survey.service";
 import { MyContext } from "interfaces/graphql.interface";
 import QuestionEntity from "entities/question.entity";
 import QuestionService from "services/question.service";
+import OptionService from "services/option.service";
+import OptionEntity from "entities/option.entity";
 
 const app = express();
 
@@ -59,11 +61,7 @@ const main = async () => {
   const tokenRepository = appDataSource.getRepository(TokenEntity)
   const surveyRepository = appDataSource.getRepository(SurveyEntity)
   const questionRepository = appDataSource.getRepository(QuestionEntity)
-
-
-  //FILTER BUILDERS
-  // const userFilterBuilder = new GenericQueryBuilder(UserEntity);
-  // const surveyFilterBuilder = new GenericQueryBuilder(SurveyEntity)
+  const optionRepository = appDataSource.getRepository(OptionEntity)
 
 
   //SERVICES
@@ -72,6 +70,7 @@ const main = async () => {
   const authService = new AuthService(userService, tokenRepository, mailService);
   const surveyService = new SurveyService(surveyRepository, userService)
   const questionService = new QuestionService(questionRepository)
+  const optionService = new OptionService(optionRepository)
 
   app.use(
     "/",
@@ -89,7 +88,7 @@ const main = async () => {
         return {
           req, res,
           user,
-          services: { userService, authService, surveyService, questionService },
+          services: { userService, authService, surveyService, questionService, optionService },
         }
       },
     }),

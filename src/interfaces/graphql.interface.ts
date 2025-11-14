@@ -6,6 +6,7 @@ import { ObjectLiteral } from "typeorm";
 import { Request, Response } from "express";
 import UserEntity from "entities/user.entity";
 import QuestionService from "services/question.service";
+import OptionService from "services/option.service";
 
 export type ResolverWrapper<TSource = any, TArgs = { id: string }, TResult = any> = (
   next: GraphQLFieldResolver<TSource, MyContext, TArgs, TResult>,
@@ -20,6 +21,7 @@ export interface MyContext<T extends ObjectLiteral = {}> {
     authService: AuthService;
     surveyService: SurveyService;
     questionService: QuestionService;
+    optionService: OptionService;
   };
   preload?: {
     entity: T
