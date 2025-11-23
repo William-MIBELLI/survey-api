@@ -47,17 +47,18 @@ export default class AuthService {
     });
 
     const user = await this.userService.findUserForSignin(args);
-
+    console.log("args : ", args)
     if (!user) {
       throw error;
     }
     const isValidPassword = await argon2.verify(user.password, args.password);
-
+    console.log("isvalid : ", isValidPassword)
     if (!isValidPassword) {
       throw error;
     }
     const { id } = user;
     const jwt = await this.createJWT(id);
+    console.log("jwt : ", jwt)
     return {
       user,
       token: jwt,

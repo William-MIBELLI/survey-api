@@ -1,4 +1,4 @@
-import { GraphQLFieldResolver } from "graphql";
+import { GraphQLFieldResolver, GraphQLResolveInfo } from "graphql";
 import AuthService from "services/auth.service";
 import SurveyService from "services/survey.service";
 import UserService from "services/user.service";
@@ -8,13 +8,23 @@ import UserEntity from "entities/user.entity";
 import QuestionService from "services/question.service";
 import OptionService from "services/option.service";
 
-export type ResolverWrapper<TSource = any, TArgs = { id: string }, TResult = any> = (
-  next: GraphQLFieldResolver<TSource, MyContext, TArgs, TResult>,
-) => GraphQLFieldResolver<TSource, MyContext, TArgs, TResult>;
+export type ResolverFn<TArgs = {}> = (
+  source: any,
+  args: TArgs,
+  context: MyContext,
+  info: GraphQLResolveInfo,
+) => any;
+
+
+export type ResolverWrapper<TArgs = {}> = (
+  next: ResolverFn<TArgs>,
+) => ResolverFn<TArgs>;
+
+
 
 export interface MyContext<T extends ObjectLiteral = {}> {
-  req: Request
-  res: Response
+  req: Request;
+  res: Response;
   user?: UserEntity | null;
   services: {
     userService: UserService;
@@ -24,6 +34,7 @@ export interface MyContext<T extends ObjectLiteral = {}> {
     optionService: OptionService;
   };
   preload?: {
-    entity: T
-  }
+    entity: T;
+  };
 }
+

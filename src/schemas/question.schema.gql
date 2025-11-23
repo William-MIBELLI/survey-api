@@ -10,6 +10,7 @@ type Question {
   type: QuestionType!
   isMandatory: Boolean!
   dependsOn: UUID
+  options: [Option!]!
   survey: Survey!
   createdAt: Date!
   updatedAt: Date!

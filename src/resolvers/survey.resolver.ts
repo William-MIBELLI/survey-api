@@ -13,11 +13,11 @@ import {
 import { GraphQLError } from "graphql";
 import { composeResolvers } from "@graphql-tools/resolvers-composition";
 import { MyContext, ResolverWrapper } from "interfaces/graphql.interface";
-import { QueryBuilder } from "typeorm";
 import UserEntity from "entities/user.entity";
 import { appDataSource } from "lib/datasource";
 import { TConnection } from "interfaces/generic.interface";
 import QuestionEntity from "entities/question.entity";
+import { isAuthenticated } from "./auth.resolver";
 
 const surveyResolver = {
   Query: {
@@ -134,7 +134,7 @@ const surveyResolver = {
     questions: async (
       parent: SurveyEntity,
       args: QuestionFilterInput,
-      { services: { questionService }}: MyContext,
+      { services: { questionService } }: MyContext,
     ): Promise<TConnection<QuestionEntity>> => {
       const query = appDataSource
         .getRepository(QuestionEntity)
@@ -142,21 +142,23 @@ const surveyResolver = {
         .innerJoin("question.survey", "survey", "survey.id = :surveyId", {
           surveyId: parent.id,
         });
-      return await questionService.findAll(args, query)
+      return await questionService.findAll(args, query);
     },
   },
 };
 
-const isSurveyFromUser =
-  (): ResolverWrapper => (next) => async (root, args, context, info) => {
-    const survey = await context.services.surveyService.findById(args.id);
-    if (!survey || !context.user || survey.ownerId !== context.user.id) {
-      throw new GraphQLError("Forbidden.");
-    }
+
+export const isSurveyFromUser =
+  (): ResolverWrapper<MutationUpdateSurveyArgs> =>
+  (next) =>
+  async (root, args, context, info) => {
+    
+    const survey = await context.services.surveyService.checkSurveyIsFromUser(args.args.id, context.user?.id!)
     return next(root, args, { ...context, preload: { entity: survey } }, info);
   };
 
 const compositionResolver = {
+  "Mutation.*": [isAuthenticated()],
   "Mutation.!createSurvey": [isSurveyFromUser()],
 };
 

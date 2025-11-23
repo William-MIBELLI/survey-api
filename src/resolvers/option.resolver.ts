@@ -11,6 +11,7 @@ import { GraphQLError } from "graphql";
 import { TConnection } from "interfaces/generic.interface";
 import { MyContext, ResolverWrapper } from "interfaces/graphql.interface";
 import { appDataSource } from "lib/datasource";
+import { isAuthenticated } from "./auth.resolver";
 
 const optionResolver = {
   Query: {
@@ -59,22 +60,22 @@ const optionResolver = {
   Option: {},
 };
 
+
+const isOptionIsForUserQuestion = (): ResolverWrapper<MutationCreateOptionArgs> => (next) => async (source, data, context, info) => {
+  await context.services.questionService.checkQuestionIsFromUser(data.args.questionId, context.user?.id!)
+  return next(source, data, context, info)
+}
+
 const isOptionFromUser =
-  (): ResolverWrapper => (next) => async (root, args, context, info) => {
-    const option = await appDataSource
-      .getRepository(OptionEntity)
-      .createQueryBuilder("option")
-      .where("option.id = :id", { id: args.id })
-      .leftJoinAndSelect("option.question", "question")
-      .leftJoinAndSelect("question.survey", "survey").getOne();
-    if (!option || !context.user || option.question.survey.ownerId !== context.user.id) {
-      throw new GraphQLError("Forbidden.");
-    }
-    return next(root, args, { ...context, preload: { entity: option } }, info);
+  (): ResolverWrapper<MutationUpdateOptionArgs> => (next) => async (root, data, context, info) => {
+    
+    const option =  context.services.optionService.checkOptionIsFromUser(data.args.id, context?.user?.id!)
+    return next(root, data, { ...context, preload: { entity: option } }, info);
   };
 
 const compositionResolver = {
-  "Mutation.!createOption": [isOptionFromUser()]
+  "Mutation.!createOption": [isAuthenticated(), isOptionFromUser()],
+  "Mutation.createOption": [isAuthenticated(), isOptionIsForUserQuestion()]
 };
 
 export default composeResolvers(optionResolver, compositionResolver);

@@ -5,6 +5,7 @@ import GenericQueryBuilder from "builders/generic.builder";
 import { UpdateCandidatesInput, UserConnection } from "generated/graphql";
 import UserEntity from "entities/user.entity";
 import UserService from "./user.service";
+import { graphql, GraphQLError } from "graphql";
 
 type TAssignment = {
   survey: SurveyEntity;
@@ -63,5 +64,30 @@ export default class SurveyService extends GenericService<SurveyEntity> {
       throw new Error("Could not revoke candidates.");
     }
     return survey;
+  }
+
+  public async findByQuestionId(questionId: string): Promise<SurveyEntity | null> {
+    return await this.repo.findOne({
+      where: {
+        questions: {
+          id: questionId
+        }
+      }
+    })
+  }
+
+  public async checkSurveyIsFromUser(surveyId: string, userId: string) {
+    const survey = await this.repo.findOne({
+      where: {
+        id: surveyId,
+      }
+    })
+    if (!survey) {
+      throw new GraphQLError('No available survey.')
+    }
+    if (survey.ownerId !== userId) {
+      throw new GraphQLError("Forbidden.")
+    }
+    return survey
   }
 }

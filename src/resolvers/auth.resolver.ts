@@ -8,7 +8,7 @@ import {
   User,
 } from "generated/graphql";
 import { GraphQLError } from "graphql";
-import { MyContext } from "interfaces/graphql.interface";
+import { MyContext, ResolverWrapper } from "interfaces/graphql.interface";
 
 
 const resolver = {
@@ -29,6 +29,7 @@ const resolver = {
       { services: { authService }, req, res }: MyContext,
     ): Promise<User> => {
       const payload = await authService.signin(args);
+      console.log("payload : ", payload)
       new Cookies(req, res).set("token", payload.token, { httpOnly: true });
       return payload.user;
     },
@@ -80,5 +81,13 @@ const resolver = {
     },
   },
 };
+
+export const isAuthenticated =
+  (): ResolverWrapper<any> => (next) => (source, args, context, info) => {
+    if (!context.user || !context.user.id!) {
+      throw new GraphQLError("This action require to get authenticated.");
+    }
+    return next(source, args, context, info);
+  };
 
 export default resolver;

@@ -10,7 +10,8 @@ import { MyContext, ResolverWrapper } from "interfaces/graphql.interface";
 import { composeResolvers } from "@graphql-tools/resolvers-composition";
 import SurveyEntity from "entities/survey.entity";
 import { GraphQLError } from "graphql";
-import { appDataSource } from "lib/datasource";
+import { isAuthenticated } from "./auth.resolver";
+import OptionEntity from "entities/option.entity";
 
 const questionResolver = {
   Query: {
@@ -70,27 +71,47 @@ const questionResolver = {
       }
       return survey;
     },
+    options: async (
+      parent: QuestionEntity,
+      _: any,
+      { services: { optionService } }: MyContext,
+    ): Promise<OptionEntity[]> => {
+      const options = await optionService.findByProperties({
+        questionId: {
+          equals: parent.id,
+        },
+      });
+      return options;
+    },
   },
 };
 
+const isQuestionForUserSurvey =
+  (): ResolverWrapper<MutationCreateQuestionArgs> =>
+  (next) =>
+  async (source, args, context, info) => {
+    await context.services.surveyService.checkSurveyIsFromUser(
+      args.args.surveyId,
+      context?.user?.id!,
+    );
+    return next(source, args, context, info);
+  };
+
 const isQuestionFromUser =
-  (): ResolverWrapper => (next) => async (root, args, context, info) => {
-    const question = await appDataSource.getRepository(QuestionEntity).findOne({
-      where: {
-        id: args.id,
-      },
-      relations: {
-        survey: true,
-      },
-    });
-    if (!question || !context.user || question.survey.ownerId !== context.user.id) {
-      throw new GraphQLError("Forbidden.");
-    }
+  (): ResolverWrapper<MutationUpdateQuestionArgs> =>
+  (next) =>
+  async (root, args, context, info) => {
+    const question = await context.services.questionService.checkQuestionIsFromUser(
+      args.args.id,
+      context?.user?.id!,
+    );
+
     return next(root, args, { ...context, preload: { entity: question } }, info);
   };
 
 const compositionResolver = {
-  "Mutation.!createQuestion": [isQuestionFromUser()],
+  "Mutation.!createQuestion": [isAuthenticated(), isQuestionFromUser()],
+  "Mutation.createQuestion": [isAuthenticated(), isQuestionForUserSurvey()],
 };
 
 export default composeResolvers(questionResolver, compositionResolver);
