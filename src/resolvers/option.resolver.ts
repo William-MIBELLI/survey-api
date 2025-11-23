@@ -6,6 +6,7 @@ import {
   MutationCreateOptionArgs,
   MutationUpdateOptionArgs,
   QueryOptionsArgs,
+  QuestionType,
 } from "generated/graphql";
 import { GraphQLError } from "graphql";
 import { TConnection } from "interfaces/generic.interface";
@@ -34,9 +35,9 @@ const optionResolver = {
     createOption: async (
       _: any,
       data: MutationCreateOptionArgs,
-      { services: { optionService } }: MyContext,
+      { services: { optionService }, preload }: MyContext<QuestionEntity>,
     ): Promise<OptionEntity> => {
-      return await optionService.createOne(data.args);
+      return await optionService.createOption({ entity: data.args, question: preload?.entity!});
     },
     updateOption: async (
       _: any,
@@ -62,8 +63,8 @@ const optionResolver = {
 
 
 const isOptionIsForUserQuestion = (): ResolverWrapper<MutationCreateOptionArgs> => (next) => async (source, data, context, info) => {
-  await context.services.questionService.checkQuestionIsFromUser(data.args.questionId, context.user?.id!)
-  return next(source, data, context, info)
+  const question = await context.services.questionService.checkQuestionIsFromUser(data.args.questionId, context.user?.id!)
+  return next(source, data, {...context, preload: { entity: question }}, info)
 }
 
 const isOptionFromUser =
