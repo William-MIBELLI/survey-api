@@ -3,10 +3,12 @@ import {
   CreateDateColumn,
   Entity,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
 import QuestionEntity from "./question.entity";
+import AnswerEntity from "./answer.entity";
 
 @Entity()
 export default class OptionEntity {
@@ -33,4 +35,7 @@ export default class OptionEntity {
 
   @ManyToOne(() => QuestionEntity, (question) => question.options)
   question: QuestionEntity;
+
+  @OneToMany(() => AnswerEntity, (answer) => answer.option, { nullable: true })
+  answers: AnswerEntity[];
 }

@@ -10,6 +10,7 @@ import {
 import Survey from "./survey.entity";
 import { QuestionType } from "generated/graphql";
 import OptionEntity from "./option.entity";
+import AnswerEntity from "./answer.entity";
 
 // export enum QuestionType {
 //   OPEN,
@@ -48,4 +49,7 @@ export default class QuestionEntity {
 
   @OneToMany(() => OptionEntity, (option) => option.question)
   options: OptionEntity[];
+
+  @OneToMany(() => AnswerEntity, answer => answer.question, { nullable: true })
+  answers: AnswerEntity[];
 }

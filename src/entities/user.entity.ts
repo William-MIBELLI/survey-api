@@ -1,4 +1,3 @@
-
 import {
   BeforeInsert,
   Column,
@@ -12,6 +11,7 @@ import {
 import Survey from "./survey.entity";
 import argon2 from "argon2";
 import SurveyEntity from "./survey.entity";
+import AnswerEntity from "./answer.entity";
 
 @Entity()
 export default class UserEntity {
@@ -41,9 +41,12 @@ export default class UserEntity {
 
   @OneToMany(() => Survey, (survey) => survey.owner)
   surveys: SurveyEntity[];
-  
+
   @ManyToMany(() => Survey, (survey) => survey.candidates)
-  assignedSurveys: SurveyEntity[]
+  assignedSurveys: SurveyEntity[];
+
+  @OneToMany(() => AnswerEntity, (answer) => answer.user)
+  answers: AnswerEntity[];
 
   @BeforeInsert()
   async hashPassword() {
