@@ -1,4 +1,4 @@
-import { Check, Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import OptionEntity from "./option.entity";
 import QuestionEntity from "./question.entity";
 import UserEntity from "./user.entity";

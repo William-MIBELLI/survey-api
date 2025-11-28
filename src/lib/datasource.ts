@@ -1,3 +1,4 @@
+import AnswerEntity from "entities/answer.entity";
 import OptionEntity from "entities/option.entity";
 import QuestionEntity from "entities/question.entity";
 import SurveyEntity from "entities/survey.entity";
@@ -14,7 +15,14 @@ export const appDataSource = new DataSource({
   username: POSTGRES_USER,
   password: POSTGRES_PASSWORD,
   database: POSTGRES_DB,
-  entities: [UserEntity, SurveyEntity, QuestionEntity, TokenEntity, OptionEntity],
+  entities: [
+    UserEntity,
+    SurveyEntity,
+    QuestionEntity,
+    TokenEntity,
+    OptionEntity,
+    AnswerEntity,
+  ],
   synchronize: true,
   logging: ["error"],
 });

@@ -7,6 +7,7 @@ import { Request, Response } from "express";
 import UserEntity from "entities/user.entity";
 import QuestionService from "services/question.service";
 import OptionService from "services/option.service";
+import AnswerService from "services/answer.service";
 
 export type ResolverFn<TArgs = {}> = (
   source: any,
@@ -32,6 +33,7 @@ export interface MyContext<T extends ObjectLiteral = {}> {
     surveyService: SurveyService;
     questionService: QuestionService;
     optionService: OptionService;
+    answerService: AnswerService
   };
   preload?: {
     entity: T;

@@ -1,0 +1,61 @@
+
+
+type Answer {
+  id: UUID!
+  value: String
+  option: Option
+  question: Question!
+  user: User!
+  createAt: Date!
+  updatedAt: Date!
+}
+
+type AnswerEdge {
+  cursor: String!
+  node: Answer!
+}
+
+type AnswerConnection {
+  count: Int!
+  edges: [AnswerEdge!]!
+  pageInfo: PageInfo!
+}
+
+type Query {
+  answer(id: UUID!): Answer
+  answers(args: AnswersFilterInput!): AnswerConnection!
+}
+
+type Mutation {
+  createAnswer(args: CreateAnswerInput!): Answer!
+  updateAnswer(args: UpdateAnswerInput!): Answer!
+  deleteAnswer(id: UUID!): DeleteResponse!
+}
+
+input AnswersFilterInput {
+  filter: AnswerFilter
+  pagination: PaginationInput
+}
+
+input AnswerFilter {
+  id: BooleanFilterInput
+  value: StringFilterInput
+  option: OptionFilter
+  question: QuestionFilter
+  createAt: DateFilterInput
+  updatedAt: DateFilterInput
+  user: UserFilterInput
+}
+
+input CreateAnswerInput {
+  value: String
+  optionId: UUID
+  questionId: UUID!
+}
+
+input UpdateAnswerInput {
+  id: UUID!
+  value: String
+  optionId: UUID
+  questionId: UUID!
+}

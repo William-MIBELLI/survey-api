@@ -16,7 +16,7 @@ import UserService from "services/user.service";
 import AuthService from "services/auth.service";
 import GenericQueryBuilder from "builders/generic.builder";
 import { User } from "generated/graphql";
-import Cookies from "cookies"
+import Cookies from "cookies";
 import TokenEntity from "entities/token.entity";
 import MailService from "services/mail.service";
 import { buildTransporter } from "lib/nodemailer";
@@ -27,6 +27,8 @@ import QuestionEntity from "entities/question.entity";
 import QuestionService from "services/question.service";
 import OptionService from "services/option.service";
 import OptionEntity from "entities/option.entity";
+import AnswerEntity from "entities/answer.entity";
+import AnswerService from "services/answer.service";
 
 const app = express();
 
@@ -58,19 +60,20 @@ const main = async () => {
 
   //REPOSITORIES
   const userRepository = appDataSource.getRepository(UserEntity);
-  const tokenRepository = appDataSource.getRepository(TokenEntity)
-  const surveyRepository = appDataSource.getRepository(SurveyEntity)
-  const questionRepository = appDataSource.getRepository(QuestionEntity)
-  const optionRepository = appDataSource.getRepository(OptionEntity)
-
+  const tokenRepository = appDataSource.getRepository(TokenEntity);
+  const surveyRepository = appDataSource.getRepository(SurveyEntity);
+  const questionRepository = appDataSource.getRepository(QuestionEntity);
+  const optionRepository = appDataSource.getRepository(OptionEntity);
+  const answerRepository = appDataSource.getRepository(AnswerEntity);
 
   //SERVICES
   const userService = new UserService(userRepository);
-  const mailService = new MailService(buildTransporter())
+  const mailService = new MailService(buildTransporter());
   const authService = new AuthService(userService, tokenRepository, mailService);
-  const surveyService = new SurveyService(surveyRepository, userService)
-  const questionService = new QuestionService(questionRepository)
-  const optionService = new OptionService(optionRepository)
+  const surveyService = new SurveyService(surveyRepository, userService);
+  const questionService = new QuestionService(questionRepository);
+  const optionService = new OptionService(optionRepository);
+  const answerService = new AnswerService(answerRepository);
 
   app.use(
     "/",
@@ -79,17 +82,25 @@ const main = async () => {
 
     expressMiddleware(server, {
       context: async ({ req, res }): Promise<MyContext> => {
-        let user: UserEntity | null = null
-        const cookie = new Cookies(req, res)
-        const token = cookie.get("token")
+        let user: UserEntity | null = null;
+        const cookie = new Cookies(req, res);
+        const token = cookie.get("token");
         if (token) {
-          user = await authService.verifyJWTValidity(token)
+          user = await authService.verifyJWTValidity(token);
         }
         return {
-          req, res,
+          req,
+          res,
           user,
-          services: { userService, authService, surveyService, questionService, optionService },
-        }
+          services: {
+            userService,
+            authService,
+            surveyService,
+            questionService,
+            optionService,
+            answerService,
+          },
+        };
       },
     }),
   );
