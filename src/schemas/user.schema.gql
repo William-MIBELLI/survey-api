@@ -11,6 +11,9 @@ type User {
   firstname: String
   lastname: String
   isPremium: Boolean!
+  surveys(data: SurveyFilterInput!): SurveyConnection!
+  assignedSurveys(data: SurveyFilterInput!): SurveyConnection!
+  answers(data: AnswersFilterInput!): SurveyConnection!
   createdAt: Date!
   updatedAt: Date!
   # surveys: [Survey!]!

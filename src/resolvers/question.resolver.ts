@@ -1,5 +1,6 @@
 import QuestionEntity from "entities/question.entity";
 import {
+  AnswersFilterInput,
   DeleteResponse,
   MutationCreateQuestionArgs,
   MutationUpdateQuestionArgs,
@@ -12,6 +13,8 @@ import SurveyEntity from "entities/survey.entity";
 import { GraphQLError } from "graphql";
 import { isAuthenticated } from "./auth.resolver";
 import OptionEntity from "entities/option.entity";
+import AnswerEntity from "entities/answer.entity";
+import { appDataSource } from "lib/datasource";
 
 const questionResolver = {
   Query: {
@@ -82,6 +85,19 @@ const questionResolver = {
         },
       });
       return options;
+    },
+    answers: async (
+      parent: QuestionEntity,
+      data: AnswersFilterInput,
+      { services: { answerService } }: MyContext,
+    ): Promise<TConnection<AnswerEntity>> => {
+      const query = appDataSource
+        .getRepository(AnswerEntity)
+        .createQueryBuilder("answer")
+        .innerJoin("answer.question", "question", "question.id = :questionId", {
+          questionId: parent.id,
+        });
+      return await answerService.findAll(data, query);
     },
   },
 };

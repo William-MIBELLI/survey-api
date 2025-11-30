@@ -58,7 +58,7 @@ const answerResolver = {
     },
   },
   Answer: {
-    Option: async (
+    option: async (
       parent: AnswerEntity,
       data: any,
       { services: { optionService } }: MyContext,
@@ -68,14 +68,14 @@ const answerResolver = {
       }
       return await optionService.findById(parent.optionId);
     },
-    Question: async (
+    question: async (
       parent: AnswerEntity,
       data: any,
       { services: { questionService } }: MyContext,
     ) => {
       return await questionService.findById(parent.questionId);
     },
-    User: async (
+    user: async (
       parent: AnswerEntity,
       data: any,
       { services: { userService } }: MyContext,

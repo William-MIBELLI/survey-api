@@ -12,6 +12,7 @@ type Question {
   dependsOn: UUID
   options: [Option!]!
   survey: Survey!
+  answers(data: AnswersFilterInput!): AnswerConnection!
   createdAt: Date!
   updatedAt: Date!
 }
