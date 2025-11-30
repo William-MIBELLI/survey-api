@@ -26,7 +26,7 @@ export type ResolverWrapper<TArgs = {}> = (
 export interface MyContext<T extends ObjectLiteral = {}> {
   req: Request;
   res: Response;
-  user?: UserEntity | null;
+  user: UserEntity | null;
   services: {
     userService: UserService;
     authService: AuthService;

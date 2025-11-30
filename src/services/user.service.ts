@@ -31,4 +31,6 @@ export default class UserService extends GenericService<UserEntity> {
   public async findUserByEmail(email: string): Promise<UserEntity | null> {
     return await this.repo.findOne({ where: {email} })
   }
+
+
 }

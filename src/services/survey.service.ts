@@ -1,6 +1,6 @@
 import SurveyEntity from "entities/survey.entity";
 import GenericService from "./generic.service";
-import { In, Not, Repository } from "typeorm";
+import { In, Not, Or, Repository } from "typeorm";
 import GenericQueryBuilder from "builders/generic.builder";
 import { UpdateCandidatesInput, UserConnection } from "generated/graphql";
 import UserEntity from "entities/user.entity";
@@ -70,24 +70,46 @@ export default class SurveyService extends GenericService<SurveyEntity> {
     return await this.repo.findOne({
       where: {
         questions: {
-          id: questionId
-        }
-      }
-    })
+          id: questionId,
+        },
+      },
+    });
   }
 
   public async checkSurveyIsFromUser(surveyId: string, userId: string) {
     const survey = await this.repo.findOne({
       where: {
         id: surveyId,
-      }
-    })
+      },
+    });
     if (!survey) {
-      throw new GraphQLError('No available survey.')
+      throw new GraphQLError("No available survey.");
     }
     if (survey.ownerId !== userId) {
-      throw new GraphQLError("Forbidden.")
+      throw new GraphQLError("Forbidden.");
     }
-    return survey
+    return survey;
+  }
+
+  public async checkUserCanAnswer(
+    questionId: string,
+    user?: UserEntity,
+  ): Promise<boolean> {
+    const query = this.repo
+      .createQueryBuilder("survey")
+      .innerJoin("survey.questions", "question", "question.id = :questionId", {
+        questionId,
+      })
+      .leftJoin("survey.candidates", "candidate")
+      .where("survey.isPublic = :isPublic", { isPublic: true })
+      .orWhere("candidate.id = :userId", { userId: user?.id });
+
+    const count = await query.getCount();
+
+    if (count <= 0) {
+      throw new GraphQLError("You can't answer to this survey.")
+    }
+
+    return true;
   }
 }

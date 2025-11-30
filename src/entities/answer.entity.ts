@@ -11,12 +11,21 @@ export default class AnswerEntity {
   @Column({ type: "text", nullable: true })
   value?: string;
 
+  @Column({ type: "uuid", nullable: true })
+  optionId?: string
+
   @ManyToOne(() => OptionEntity, (option) => option.answers, { nullable: true })
   option: OptionEntity;
 
-  @ManyToOne(() => QuestionEntity, (question) => question.answers, { nullable: true })
+  @Column({ type: "uuid" })
+  questionId: string;
+
+  @ManyToOne(() => QuestionEntity, (question) => question.answers)
   question: QuestionEntity;
 
-  @ManyToOne(() => UserEntity, (user) => user.answers)
+  @Column({ type: "uuid", nullable: true })
+  userId?: string
+
+  @ManyToOne(() => UserEntity, (user) => user.answers, { nullable: true })
   user: UserEntity;
 }
