@@ -1,4 +1,4 @@
-
+scalar UUID
 
 type Answer {
   id: UUID!
@@ -48,14 +48,13 @@ input AnswerFilter {
 }
 
 input CreateAnswerInput {
-  value: String
-  optionId: UUID
+  value: String @constraint(maxLength: 500)
+  optionId: UUID 
   questionId: UUID!
 }
 
 input UpdateAnswerInput {
-  id: UUID!
-  value: String
-  optionId: UUID
-  questionId: UUID!
+  id: UUID! 
+  value: String @constraint(maxLength: 500)
+  optionId: UUID 
 }

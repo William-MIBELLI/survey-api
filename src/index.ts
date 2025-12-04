@@ -29,6 +29,7 @@ import OptionService from "services/option.service";
 import OptionEntity from "entities/option.entity";
 import AnswerEntity from "entities/answer.entity";
 import AnswerService from "services/answer.service";
+import { constraintDirectiveTypeDefs, createApollo4QueryValidationPlugin} from "graphql-constraint-directive/apollo4"
 
 const app = express();
 
@@ -36,14 +37,14 @@ const httpServer = http.createServer(app);
 
 const schema = constraintDirective()(
   makeExecutableSchema({
-    typeDefs,
+    typeDefs:[ constraintDirectiveTypeDefs, typeDefs],
     resolvers,
   }),
 );
 
 const server = new ApolloServer<MyContext>({
   schema,
-  plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
+  plugins: [createApollo4QueryValidationPlugin(), ApolloServerPluginDrainHttpServer({ httpServer })],
   includeStacktraceInErrorResponses: false,
   formatError,
 });

@@ -16,7 +16,6 @@ type User {
   answers(data: AnswersFilterInput!): SurveyConnection!
   createdAt: Date!
   updatedAt: Date!
-  # surveys: [Survey!]!
 }
 
 type UserEdge {
@@ -33,12 +32,9 @@ type UserConnection {
 type Query {
   user(id: UUID): User
   users(args: UserFilterInput!): UserConnection!
-  # users(pagination: PaginationInput!): UserConnection!
-  # userByProperties(args: UserFilterInput!): [User!]!
 }
 
 type Mutation {
-  # createUser(args: CreateUserInput!): User!
   updateMe(args: UpdateUserInput!): User!
   deleteMe: DeleteResponse!
 }
@@ -58,23 +54,10 @@ input UserFilterInput {
   pagination: PaginationInput
 }
 
-# input CreateUserInput {
-#   email: String! @constraint(format: "email", maxLength: 255)
-#   firstname: String @constraint(pattern: "^[0-9a-zA-Z]*$", maxLength: 255, minLength: 3)
-#   lastname: String @constraint(pattern: "^[0-9a-zA-Z]*$", maxLength: 255, minLength: 3)
-#   isPremium: Boolean!
-#   password: String!
-#     @constraint(
-#       pattern: "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$"
-#       maxLength: 30
-#       minLength: 8
-#     )
-#   confirmPassword: String!
-# }
 
 input UpdateUserInput {
   email: String @constraint(format: "email", maxLength: 255)
-  firstname: String @constraint(pattern: "^[0-9a-zA-Z]*$", maxLength: 255, minLength: 3)
-  lastname: String @constraint(pattern: "^[0-9a-zA-Z]*$", maxLength: 255, minLength: 3)
+  firstname: String @constraint(pattern: "^[a-zA-Zà-öø-ÿÀ-ÖØ-ß' -]{2,50}$", maxLength: 50, minLength: 2)
+  lastname: String @constraint(pattern: "^[a-zA-Zà-öø-ÿÀ-ÖØ-ß' -]{2,50}$", maxLength: 50, minLength: 2)
   isPremium: Boolean
 }

@@ -1,4 +1,5 @@
 scalar Date
+scalar UUID
 
 type Survey {
   id: UUID!
@@ -45,17 +46,17 @@ input UpdateCandidatesInput {
 }
 
 input CreateSurveyInput {
-  name: String!
-  description: String!
+  name: String! @constraint(maxLength: 50, minLength: 2)
+  description: String! @constraint(maxLength: 255, minLength: 10)
   isPublic: Boolean!
   startDate: Date
   endDate: Date
 }
 
 input UpdateSurveyInput {
-  id: UUID!
-  name: String
-  description: String
+  id: UUID! 
+  name: String @constraint(maxLength: 50, minLength: 2)
+  description: String @constraint(maxLength: 255, minLength: 10)
   isPublic: Boolean
   startDate: Date
   endDate: Date
@@ -63,7 +64,7 @@ input UpdateSurveyInput {
 
 
 input SurveyFilter {
-  id: UUID
+  id: UUID 
   description: StringFilterInput
   name: StringFilterInput
   isPublic: BooleanFilterInput

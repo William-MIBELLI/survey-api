@@ -22,13 +22,21 @@ const seedUser = async () => {
     return user;
   };
   const users =  faker.helpers.multiple(createRandomUser, { count: 500 });
-  // await UserService.getInstance().repo.insert(users)
-  // await Promise.all(users.map(user => {
-  //   userService.createOne(user)
-  // }))
+
+  const admin = {
+    email:"william.mibelli@gmail.com",
+    firstname: "William",
+    lastname : "MIBELLI",
+    password : hash,
+    isPremium : true
+  }
+  users.push(admin)
+
   await new UserService(
     appDataSource.getRepository(UserEntity),
   ).createUserForSeeding(users);
+  
+ 
 };
 
 const seedDB = async () => {

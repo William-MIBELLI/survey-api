@@ -6,4 +6,4 @@ import { constraintDirectiveTypeDefs } from "graphql-constraint-directive"
 
 const typesArray = loadFilesSync(path.join(__dirname, '.'), { extensions: ['gql'], recursive: true })
 
-export default mergeTypeDefs([...typeDefs, typesArray, constraintDirectiveTypeDefs])
+export default mergeTypeDefs([...typeDefs, typesArray])

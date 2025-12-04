@@ -23,7 +23,7 @@ export default class QuestionEntity {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column()
+  @Column({ type: "varchar", length: 255, nullable: false})
   label: string;
 
   @Column({ type: "enum", enum: QuestionType })
@@ -35,7 +35,7 @@ export default class QuestionEntity {
   @Column({ type: "uuid", nullable: true })
   dependsOn?: string;
 
-  @Column()
+  @Column({ type: "uuid", nullable: false})
   surveyId: string;
 
   @CreateDateColumn({ type: "timestamptz", precision: 3 })

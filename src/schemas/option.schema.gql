@@ -1,3 +1,4 @@
+scalar UUID
 
 type Option {
   id: UUID!
@@ -32,16 +33,16 @@ type Mutation {
 }
 
 input CreateOptionInput {
-  position: Int!
-  label: String!
+  position: Int! @constraint(exclusiveMin: 0)
+  label: String! @constraint(minLength: 2, maxLength: 255)
   withArgs: Boolean!
-  questionId: UUID!
+  questionId: UUID! 
 }
 
 input UpdateOptionInput {
-  id: UUID!
-  position: Int
-  label: String
+  id: UUID! 
+  position: Int @constraint(exclusiveMin: 0)
+  label: String @constraint(minLength: 2, maxLength: 255)
   withArgs: Boolean
 }
 

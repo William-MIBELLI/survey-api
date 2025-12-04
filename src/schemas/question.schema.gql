@@ -1,3 +1,4 @@
+scalar UUID
 enum QuestionType {
   OPEN
   SIMPLE
@@ -40,10 +41,10 @@ type Mutation {
 }
 
 input CreateQuestionInput {
-  label: String!
+  label: String! @constraint(maxLength: 255, minLength: 3)
   isMandatory: Boolean
-  dependsOn: UUID
-  surveyId: UUID!
+  dependsOn: UUID 
+  surveyId: UUID! 
   type: QuestionType!
 }
 
@@ -52,10 +53,10 @@ input QuestionTypeFilter {
 }
 
 input UpdateQuestionInput {
-  id: UUID!
-  label: String
+  id: UUID! 
+  label: String @constraint(maxLength: 255, minLength: 3)
   isMandatory: Boolean
-  dependsOn: UUID
+  dependsOn: UUID 
   type: QuestionType
 }
 
