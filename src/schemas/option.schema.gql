@@ -5,7 +5,7 @@ type Option {
   label: String!
   withArgs: Boolean!
   question: Question!
-  answers(data: AnswerFilterInput!): AnswerConnection!
+  answers(data: AnswersFilterInput!): AnswerConnection!
   createdAt: Date!
   updatedAt: Date!
 }

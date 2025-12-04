@@ -1,4 +1,5 @@
 import Cookies from "cookies";
+import UserEntity from "entities/user.entity";
 import {
   DeleteResponse,
   GenericResponse,
@@ -18,7 +19,7 @@ const resolver = {
       _: any,
       { args }: MutationSignupArgs,
       { services: { authService }, req, res }: MyContext,
-    ): Promise<User> => {
+    ): Promise<UserEntity> => {
       const payload = await authService.signup(args);
       new Cookies(req, res).set("token", payload.token, { httpOnly: true });
       return payload.user;
@@ -27,7 +28,7 @@ const resolver = {
       _: any,
       { args }: MutationSigninArgs,
       { services: { authService }, req, res }: MyContext,
-    ): Promise<User> => {
+    ): Promise<UserEntity> => {
       const payload = await authService.signin(args);
       console.log("payload : ", payload)
       new Cookies(req, res).set("token", payload.token, { httpOnly: true });
@@ -49,7 +50,7 @@ const resolver = {
       _: any,
       data: MutationResetPasswordArgs,
       { services: { authService }, req, res }: MyContext,
-    ): Promise<User> => {
+    ): Promise<UserEntity> => {
       try {
         const payload = await authService.resetPassword(data.args);
         new Cookies(req, res).set("token", payload.token, { httpOnly: true });

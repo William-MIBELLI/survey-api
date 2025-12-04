@@ -121,7 +121,7 @@ const surveyResolver = {
       parent: SurveyEntity,
       args: UserFilterInput,
       { services: { userService } }: MyContext,
-    ): Promise<UserConnection> => {
+    ): Promise<TConnection<UserEntity>> => {
       const query = appDataSource
         .getRepository(UserEntity)
         .createQueryBuilder("user")

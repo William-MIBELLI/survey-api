@@ -11,7 +11,7 @@ import UserEntity from "entities/user.entity";
 
 type AuthPayload = {
   token: string;
-  user: User;
+  user: UserEntity;
 };
 
 export default class AuthService {

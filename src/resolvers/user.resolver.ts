@@ -15,6 +15,7 @@ import { UtcOffsetResolver } from "graphql-scalars";
 import { appDataSource } from "lib/datasource";
 import SurveyEntity from "entities/survey.entity";
 import AnswerEntity from "entities/answer.entity";
+import { TConnection } from "interfaces/generic.interface";
 
 const userResolver = {
   Query: {
@@ -29,7 +30,7 @@ const userResolver = {
       _: any,
       { args }: QueryUsersArgs,
       { services: { userService } }: MyContext,
-    ): Promise<UserConnection> => {
+    ): Promise<TConnection<User>> => {
       const { filters, pagination } = args;
       return await userService.findAll({ ...filters, pagination });
     },
