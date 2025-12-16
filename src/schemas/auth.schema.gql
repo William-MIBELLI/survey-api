@@ -1,3 +1,7 @@
+type Query {
+  me: User
+}
+
 type Mutation {
   signup(args: SignupInput!): User!
   signin(args: SigninInput!): User!

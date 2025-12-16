@@ -11,9 +11,12 @@ import {
 import { GraphQLError } from "graphql";
 import { MyContext, ResolverWrapper } from "interfaces/graphql.interface";
 
-
 const resolver = {
-  Query: {},
+  Query: {
+    me: async (_: any, __: any, { user }: MyContext): Promise<UserEntity | null> => {
+      return user;
+    },
+  },
   Mutation: {
     signup: async (
       _: any,
@@ -30,7 +33,6 @@ const resolver = {
       { services: { authService }, req, res }: MyContext,
     ): Promise<UserEntity> => {
       const payload = await authService.signin(args);
-      console.log("payload : ", payload)
       new Cookies(req, res).set("token", payload.token, { httpOnly: true });
       return payload.user;
     },

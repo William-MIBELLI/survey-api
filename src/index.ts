@@ -29,7 +29,10 @@ import OptionService from "services/option.service";
 import OptionEntity from "entities/option.entity";
 import AnswerEntity from "entities/answer.entity";
 import AnswerService from "services/answer.service";
-import { constraintDirectiveTypeDefs, createApollo4QueryValidationPlugin} from "graphql-constraint-directive/apollo4"
+import {
+  constraintDirectiveTypeDefs,
+  createApollo4QueryValidationPlugin,
+} from "graphql-constraint-directive/apollo4";
 
 const app = express();
 
@@ -37,14 +40,17 @@ const httpServer = http.createServer(app);
 
 const schema = constraintDirective()(
   makeExecutableSchema({
-    typeDefs:[ constraintDirectiveTypeDefs, typeDefs],
+    typeDefs: [constraintDirectiveTypeDefs, typeDefs],
     resolvers,
   }),
 );
 
 const server = new ApolloServer<MyContext>({
   schema,
-  plugins: [createApollo4QueryValidationPlugin(), ApolloServerPluginDrainHttpServer({ httpServer })],
+  plugins: [
+    createApollo4QueryValidationPlugin(),
+    ApolloServerPluginDrainHttpServer({ httpServer }),
+  ],
   includeStacktraceInErrorResponses: false,
   formatError,
 });
@@ -78,7 +84,7 @@ const main = async () => {
 
   app.use(
     "/",
-    cors<cors.CorsRequest>(),
+    cors<cors.CorsRequest>({ origin: ["http://localhost:5173", "https://studio.apollographql.com"], credentials: true }),
     express.json(),
 
     expressMiddleware(server, {
