@@ -96,6 +96,7 @@ export default class AuthService {
     const expiration = Date.now() + 15 * 60 * 1000;
     const hashedResetToken = await argon2.hash(resetToken, { type: argon2.argon2id });
 
+    console.log("RESET TOKEN : ", resetToken)
     const entity = new TokenEntity();
     entity.token = hashedResetToken;
     entity.type = EToken.RESET_PASSWORD;
@@ -103,7 +104,6 @@ export default class AuthService {
     entity.expiration = new Date(expiration);
 
     const created = await this.tokenRepo.save(entity);
-
     if (!created) {
       return false;
     }
@@ -114,7 +114,7 @@ export default class AuthService {
         token: resetToken,
       });
     } catch (error) {
-      await this.tokenRepo.delete({ id: created.id });
+      // await this.tokenRepo.delete({ id: created.id });
       throw error;
     }
 
@@ -122,10 +122,9 @@ export default class AuthService {
   }
 
   public async resetPassword(args: ResetPasswordInput): Promise<AuthPayload> {
-    const error: Error = new Error("Unable to reset password.");
 
     if (args.newPassword !== args.confirmNewPassword) {
-      throw new Error("Password have to match.");
+      throw new GraphQLError("Password have to match.");
     }
 
     const entityToken = await this.tokenRepo.findOne({
@@ -140,17 +139,29 @@ export default class AuthService {
       },
     });
     if (!entityToken) {
-      throw error;
+      throw new GraphQLError("Invalid or expired reset token.", {
+        extensions: {
+          code: "INVALID_TOKEN",
+        },
+      });
+    }
+    
+    const isValid = await argon2.verify(entityToken.token, args.token);
+    if (!isValid) {
+      throw new GraphQLError("Invalid reset token.", {
+        extensions: {
+          code: "INVALID_TOKEN",
+        },
+      });
     }
     if (Date.now() > entityToken.expiration.getTime()) {
       await this.tokenRepo.delete({ id: entityToken.id });
 
-      throw error;
-    }
-
-    const isValid = await argon2.verify(entityToken.token, args.token);
-    if (!isValid) {
-      throw error;
+      throw new GraphQLError("Reset token has expired.", {
+        extensions: {
+          code: "EXPIRED_TOKEN",
+        },
+      });
     }
 
     const hashedPassword = await argon2.hash(args.newPassword, {

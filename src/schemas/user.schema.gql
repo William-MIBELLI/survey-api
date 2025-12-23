@@ -31,6 +31,7 @@ type UserConnection {
 
 type Query {
   user(id: UUID): User
+  userByEmail(email: String!): User
   users(args: UserFilterInput!): UserConnection!
 }
 

@@ -3,6 +3,7 @@ import {
   AnswersFilterInput,
   DeleteResponse,
   MutationUpdateMeArgs,
+  QueryUserByEmailArgs,
   QueryUsersArgs,
   SurveyFilterInput,
   UserConnection,
@@ -34,6 +35,9 @@ const userResolver = {
       const { filters, pagination } = args;
       return await userService.findAll({ ...filters, pagination });
     },
+    userByEmail: async (_: any, data: QueryUserByEmailArgs, { services: { userService }}: MyContext) => {
+      return await userService.findUserByEmail(data.email)
+    }
   },
   Mutation: {
     updateMe: async (
@@ -116,7 +120,7 @@ const isAuthenticated = (): ResolverWrapper => (next) => (root, args, context, i
 
 const userResolverWrapper = {
   "Mutation.*": [isAuthenticated()],
-  "Query.*": [isAuthenticated()],
+  "Query.!userByEmail": [isAuthenticated()],
 };
 
 export default composeResolvers(userResolver, userResolverWrapper);
