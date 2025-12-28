@@ -35,6 +35,13 @@ const surveyResolver = {
     ): Promise<TConnection<SurveyEntity>> => {
       return await surveyService.findAll(data.args);
     },
+    userSurvey: async (_: any, __: any, { user, services: { surveyService } }: MyContext) => {
+      return await surveyService.findByProperties({
+        ownerId: {
+          equals: user?.id
+        }
+      })
+    }
   },
   Mutation: {
     createSurvey: async (
@@ -49,6 +56,7 @@ const surveyResolver = {
           },
         });
       }
+      console.log("DATA SURVEY CREATE : ", data)
       return await surveyService.createOne({
         ...data.args,
         ownerId: user.id,
@@ -160,6 +168,7 @@ export const isSurveyFromUser =
 const compositionResolver = {
   "Mutation.*": [isAuthenticated()],
   "Mutation.!createSurvey": [isSurveyFromUser()],
+  "Query.userSurvey" : [isAuthenticated()]
 };
 
 export default composeResolvers(surveyResolver, compositionResolver);

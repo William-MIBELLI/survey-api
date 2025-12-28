@@ -5,7 +5,7 @@ import {
   PaginationInput,
   StringFilterInput,
 } from "generated/graphql";
-import { FindOptionsWhere, ObjectLiteral } from "typeorm";
+import { FindOptionsRelations, FindOptionsWhere, ObjectLiteral } from "typeorm";
 
 export interface Edge<T extends ObjectLiteral> {
   cursor: string;
@@ -23,10 +23,20 @@ export interface TConnection<T extends ObjectLiteral> {
   };
 }
 
-export type TFilterType = StringFilterInput | IntFilterInput | DateFilterInput | BooleanFilterInput;
+export type TFilterType =
+  | StringFilterInput
+  | IntFilterInput
+  | DateFilterInput
+  | BooleanFilterInput;
 
 export type TFilterInput<T> = {
-  [k in keyof FindOptionsWhere<T>]: TFilterType;
+  [K in keyof FindOptionsWhere<T>]: T[K & keyof T] extends (infer U)[]
+    ? TFilterInput<U>
+    : T[K & keyof T] extends Date
+    ? TFilterType
+    : T[K & keyof T] extends ObjectLiteral
+    ? TFilterInput<T[K & keyof T]>
+    : TFilterType;
 };
 
 export const operatorMap = {
@@ -49,5 +59,10 @@ export type TGenericFilter<T> = {
 export type TFindArgs<T> = {
   pagination?: PaginationInput;
   filters?: TFilterInput<T>;
+  relations?: FindOptionsRelations<T>;
 };
+
+export interface TFindArgsWithRelations<T> extends TFindArgs<T> {
+  relations?: FindOptionsRelations<T>;
+}
 

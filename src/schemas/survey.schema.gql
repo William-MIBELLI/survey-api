@@ -30,6 +30,7 @@ type SurveyConnection {
 type Query {
   survey(id: UUID!): Survey
   surveys(args: SurveyFilterInput!): SurveyConnection!
+  userSurvey: [Survey]
 }
 
 type Mutation {
@@ -62,6 +63,10 @@ input UpdateSurveyInput {
   endDate: Date
 }
 
+input SurveyRelationsInput {
+    owner: Boolean
+}
+
 
 input SurveyFilter {
   id: UUID 
@@ -72,9 +77,13 @@ input SurveyFilter {
   updatedAt: DateFilterInput
   startDate: DateFilterInput
   endDate: DateFilterInput
+  owner: UserFilter
+  questions: QuestionFilter
+  candidates: UserFilter
 }
 
 input SurveyFilterInput {
   filters: SurveyFilter
   pagination: PaginationInput
+  relations: SurveyRelationsInput
 }

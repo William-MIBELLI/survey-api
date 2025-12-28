@@ -33,7 +33,7 @@ export default abstract class GenericService<T extends ObjectLiteral> {
     data: TFindArgs<T>,
     initialFilter?: SelectQueryBuilder<T>,
   ): Promise<TConnection<T>> {
-    const { pagination, ...filters } = data;
+    const { pagination, filters } = data;
     const filterBuilder = new GenericQueryBuilder<T>(this.repo.target, initialFilter)
 
     if (filters) {

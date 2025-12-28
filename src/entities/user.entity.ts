@@ -18,7 +18,7 @@ export default class UserEntity {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column({ unique: true, type: "varchar", length: 255 })
+  @Column({ unique: true, type: "varchar", length: 255, nullable: false })
   email: string;
 
   @Column({ type: "varchar", length: 255, select: false })

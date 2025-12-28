@@ -12,8 +12,9 @@ import { appDataSource } from "lib/datasource";
 
 export type TFilterHandler<T extends ObjectLiteral> = (
   qb: SelectQueryBuilder<T>,
-  filterValue: TFilterType,
+  filterValue: TFilterType | Record<string, any>,
   key: keyof T,
+  alias?: string
 ) => void;
 
 export default class GenericQueryBuilder<T extends ObjectLiteral> {
@@ -35,7 +36,9 @@ export default class GenericQueryBuilder<T extends ObjectLiteral> {
   }
 
   public applyFilters(filters: TFilterInput<T>): this {
+
     Object.entries(filters).forEach(([key, value]) => {
+
       if (this.filterHandlers.has(key)) {
         const handler = this.filterHandlers.get(key);
         if (handler && value !== null && value !== undefined) {
@@ -46,6 +49,32 @@ export default class GenericQueryBuilder<T extends ObjectLiteral> {
     return this;
   }
 
+  protected applyRelations: TFilterHandler<T> = (qb, filter, key, parentAlias = this.tableName) => {
+
+    const relationName = String(key)
+    const alias = relationName
+    const isAlreadyJoined = qb.expressionMap.aliases.some(a => a.name === relationName)
+    if (!isAlreadyJoined) {
+      qb.leftJoinAndSelect(`${parentAlias}.${relationName}`, relationName)
+    }
+    const relation = this.metadata.relations.find(r => r.propertyName === relationName)
+    if (!relation) return
+    
+    const relationMetadata = relation.inverseEntityMetadata
+
+    Object.entries(filter).forEach(([subKey, subValue]) => {
+
+      const column = relationMetadata.columns.find(c => c.propertyName === subKey)
+       if (column) {
+        if (column.type === String || column.type === "varchar" || column.type === "text") {
+          this.applyStringFilter(qb, subValue as any, subKey as any, alias);
+        } else {
+          this.applyComparisonFilter(qb, subValue as any, subKey as any, alias);
+        }
+      }
+    })
+  }
+
   protected initialiseFilters() {
     this.metadata.columns.forEach((column) => {
       if (column.type === String || column.type === "varchar" || column.type === "text") {
@@ -54,6 +83,10 @@ export default class GenericQueryBuilder<T extends ObjectLiteral> {
         this.filterHandlers.set(column.propertyName, this.applyComparisonFilter);
       }
     });
+    this.metadata.relations.forEach(rel => {
+      this.filterHandlers.set(rel.propertyName, this.applyRelations)
+    })
+
   }
 
   public build(): SelectQueryBuilder<T> {
@@ -64,15 +97,17 @@ export default class GenericQueryBuilder<T extends ObjectLiteral> {
     qb: SelectQueryBuilder<T>,
     filter: TFilterType,
     key: keyof T,
+    alias = this.tableName
   ) => {
-    const column = `${this.tableName}.${String(key)}`;
+    const column = `${alias}.${String(key)}`;
 
     Object.entries(filter).forEach(([k, value]) => {
       if (value === undefined || value === null) {
         return;
       }
 
-      const paramName = `${String(key)}_${k}`;
+      const paramName = `${alias}_${String(key)}_${k}`;
+
       const isGenericOperation = Object.hasOwn(operatorMap, k);
 
       if (isGenericOperation) {
@@ -99,25 +134,27 @@ export default class GenericQueryBuilder<T extends ObjectLiteral> {
     qb: SelectQueryBuilder<T>,
     filter: TFilterType,
     key: keyof T,
+    alias = this.tableName
   ) => {
     if (typeof filter !== "object" || filter === null) {
       return;
     }
 
-    this.applyComparisonFilter(qb, filter, key);
+    this.applyComparisonFilter(qb, filter, key, alias);
 
-    const column = `${this.tableName}.${String(key)}`;
+    const column = `${alias}.${String(key)}`;
     const stringFilter = filter as StringFilterInput;
+    const paramBase = `${alias}_${String(key)}`
 
     if (stringFilter.contains) {
-      qb.andWhere(`${column} LIKE :contains`, { contains: `%${stringFilter.contains}%` });
+      qb.andWhere(`${column} LIKE :${paramBase}_contains`, { [`${paramBase}_contains`]: `%${stringFilter.contains}%` });
     }
     if (stringFilter.endsWith) {
-      qb.andWhere(`${column} LIKE :endsWith`, { endsWith: `%${stringFilter.endsWith}` });
+      qb.andWhere(`${column} LIKE :${paramBase}_endsWith`, { [`${paramBase}_endsWith`]: `%${stringFilter.endsWith}` });
     }
     if (stringFilter.startsWith) {
-      qb.andWhere(`${column} LIKE :startsWith`, {
-        startsWith: `${stringFilter.startsWith}%`,
+      qb.andWhere(`${column} LIKE :${paramBase}_startsWith`, {
+        [`${paramBase}_startsWith`]: `${stringFilter.startsWith}%`,
       });
     }
   };
