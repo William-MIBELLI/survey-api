@@ -3,6 +3,7 @@ import {
   DeleteResponse,
   MutationAssignCandidatesArgs,
   MutationCreateSurveyArgs,
+  MutationDeleteSurveyArgs,
   MutationRevokeCandidatesArgs,
   MutationUpdateSurveyArgs,
   QuerySurveysArgs,
@@ -147,12 +148,22 @@ const surveyResolver = {
   },
 };
 
+<<<<<<< Updated upstream
 const isSurveyFromUser =
   (): ResolverWrapper => (next) => async (root, args, context, info) => {
     const survey = await context.services.surveyService.findById(args.id);
     if (!survey || !context.user || survey.ownerId !== context.user.id) {
       throw new GraphQLError("Forbidden.");
     }
+=======
+
+export const isSurveyFromUser =
+  (): ResolverWrapper<MutationUpdateSurveyArgs | MutationDeleteSurveyArgs> =>
+  (next) =>
+  async (root, args, context, info) => {
+    
+    const survey = await context.services.surveyService.checkSurveyIsFromUser(args.args.id, context.user?.id!)
+>>>>>>> Stashed changes
     return next(root, args, { ...context, preload: { entity: survey } }, info);
   };
 

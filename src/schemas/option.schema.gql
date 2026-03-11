@@ -1,0 +1,68 @@
+scalar UUID
+
+type Option {
+  id: UUID!
+  position: Int!
+  label: String!
+  withArgs: Boolean!
+  question: Question!
+  answers(data: AnswersFilterInput!): AnswerConnection!
+  createdAt: Date!
+  updatedAt: Date!
+}
+type OptionEdges {
+  cursor: String!
+  node: Option!
+}
+
+type OptionConnection {
+  count: Int!
+  edges: [OptionEdges!]!
+  pageInfo: PageInfo!
+}
+
+type Query {
+  option(id: UUID!): Option
+  options(args: OptionsFilterInput!): OptionConnection!
+}
+
+type Mutation {
+  createOption(args: CreateOptionInput!): Option!
+  deleteOption(id: UUID!): DeleteResponse!
+  updateOption(args: UpdateOptionInput!): Option!
+}
+
+input CreateOptionInput {
+  position: Int! @constraint(exclusiveMin: 0)
+  label: String! @constraint(minLength: 2, maxLength: 255)
+  withArgs: Boolean!
+  questionId: UUID! 
+}
+
+input CreateOptionWithQuestionInput {
+  position: Int! @constraint(exclusiveMin: 0)
+  label: String! @constraint(minLength: 2, maxLength: 255)
+  withArgs: Boolean!
+}
+
+input UpdateOptionInput {
+  id: UUID! 
+  position: Int @constraint(exclusiveMin: 0)
+  label: String @constraint(minLength: 2, maxLength: 255)
+  withArgs: Boolean
+}
+
+input OptionFilter {
+  id: IdFilterInput
+  questionId: IdFilterInput
+  position: IntFilterInput
+  label: StringFilterInput
+  withArgs: BooleanFilterInput
+  createdAt: DateFilterInput
+  updatedAt: DateFilterInput
+}
+
+input OptionsFilterInput {
+  filters: OptionFilter
+  pagination: PaginationInput
+}
