@@ -128,13 +128,11 @@ const isQuestionFromUser =
   (next) =>
     async (root, args, context, info) => {
       console.log("ARGS DANS LE MIDDLEWARE : ", args)
-
     const question = await context.services.questionService.checkQuestionIsFromUser(
       args.args.id,
       context?.user?.id!,
     );
     console.log('QUESTION DANS LE MIDDLEWARE : ', question)
-
     return next(root, args, { ...context, preload: { entity: question } }, info);
   };
 

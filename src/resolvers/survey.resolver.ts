@@ -162,7 +162,6 @@ export const isSurveyFromUser =
   async (root, args, context, info) => {
     
     const survey = await context.services.surveyService.checkSurveyIsFromUser(args.args.id, context.user?.id!)
-
     return next(root, args, { ...context, preload: { entity: survey } }, info);
   };
 
