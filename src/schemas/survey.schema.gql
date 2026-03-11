@@ -36,7 +36,7 @@ type Query {
 type Mutation {
   createSurvey(args: CreateSurveyInput!): Survey!
   updateSurvey(args: UpdateSurveyInput!): Survey!
-  deleteSurvey(id: UUID!): DeleteResponse!
+  deleteSurvey(args: DeleteSurveyInput!): DeleteResponse!
   assignCandidates(args: UpdateCandidatesInput!): Survey!
   revokeCandidates(args: UpdateCandidatesInput!): Survey!
 }
@@ -44,6 +44,10 @@ type Mutation {
 input UpdateCandidatesInput {
   surveyId: UUID!
   ids: [UUID!]!
+}
+
+input DeleteSurveyInput {
+  id: UUID!
 }
 
 input CreateSurveyInput {

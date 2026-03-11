@@ -19,7 +19,8 @@ export default class OptionService extends GenericService<OptionEntity> {
     if (question.type === QuestionType.Open) {
       throw new GraphQLError("Can't add option to an Open question.");
     }
-    return await super.createOne(entity);
+    const optionToSave = {...entity, questionId: question.id}
+    return await super.createOne(optionToSave);
   }
 
   public async createOne(entity: DeepPartial<OptionEntity>): Promise<OptionEntity> {

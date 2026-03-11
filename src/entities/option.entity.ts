@@ -33,7 +33,7 @@ export default class OptionEntity {
   @UpdateDateColumn({ type: "timestamptz", precision: 3 })
   updatedAt: Date;
 
-  @ManyToOne(() => QuestionEntity, (question) => question.options)
+  @ManyToOne(() => QuestionEntity, (question) => question.options, { onDelete: "CASCADE"})
   question: QuestionEntity;
 
   @OneToMany(() => AnswerEntity, (answer) => answer.option, { nullable: true })

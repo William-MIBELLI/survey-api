@@ -3,6 +3,7 @@ import {
   AnswersFilterInput,
   DeleteResponse,
   MutationCreateQuestionArgs,
+  MutationDeleteQuestionArgs,
   MutationUpdateQuestionArgs,
   QueryQuestionsArgs,
 } from "generated/graphql";
@@ -37,9 +38,17 @@ const questionResolver = {
     createQuestion: async (
       _: any,
       data: MutationCreateQuestionArgs,
-      { services: { questionService } }: MyContext,
+      { services: { questionService, optionService } }: MyContext,
     ): Promise<QuestionEntity> => {
-      return await questionService.createOne(data.args);
+      const { options, ...rest } = data.args
+      const createdQuestion = await questionService.createOne(rest);
+      if (options) {
+        const createdOptions = await Promise.all(options.map(o => {
+          return optionService.createOption({ entity: o, question: createdQuestion})
+        }))
+        return {...createdQuestion, options: createdOptions}
+      }
+      return createdQuestion
     },
     updateQuestion: async (
       _: any,
@@ -50,9 +59,10 @@ const questionResolver = {
     },
     deleteQuestion: async (
       _: any,
-      { id }: { id: string },
+      args: MutationDeleteQuestionArgs,
       { services: { questionService }, preload }: MyContext<QuestionEntity>,
     ): Promise<DeleteResponse> => {
+      console.log('ID DANS LE RESOLVER : ', args)
       const isDeleted = await questionService.deleteOne(preload?.entity!);
       return {
         success: isDeleted,
@@ -114,13 +124,16 @@ const isQuestionForUserSurvey =
   };
 
 const isQuestionFromUser =
-  (): ResolverWrapper<MutationUpdateQuestionArgs> =>
+  (): ResolverWrapper<MutationUpdateQuestionArgs | MutationDeleteQuestionArgs> =>
   (next) =>
-  async (root, args, context, info) => {
+    async (root, args, context, info) => {
+      console.log("ARGS DANS LE MIDDLEWARE : ", args)
+
     const question = await context.services.questionService.checkQuestionIsFromUser(
       args.args.id,
       context?.user?.id!,
     );
+    console.log('QUESTION DANS LE MIDDLEWARE : ', question)
 
     return next(root, args, { ...context, preload: { entity: question } }, info);
   };

@@ -32,6 +32,9 @@ export default class QuestionEntity {
   @Column({ default: true, name: "is_mandatory" })
   isMandatory: boolean;
 
+  @Column({ nullable: false })
+  position: number
+
   @Column({ type: "uuid", nullable: true })
   dependsOn?: string;
 
