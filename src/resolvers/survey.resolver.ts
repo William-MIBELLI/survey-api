@@ -3,6 +3,7 @@ import {
   DeleteResponse,
   MutationAssignCandidatesArgs,
   MutationCreateSurveyArgs,
+  MutationDeleteSurveyArgs,
   MutationRevokeCandidatesArgs,
   MutationUpdateSurveyArgs,
   QuerySurveysArgs,
@@ -157,7 +158,7 @@ const surveyResolver = {
 
 
 export const isSurveyFromUser =
-  (): ResolverWrapper<MutationUpdateSurveyArgs> =>
+  (): ResolverWrapper<MutationUpdateSurveyArgs | MutationDeleteSurveyArgs> =>
   (next) =>
   async (root, args, context, info) => {
     

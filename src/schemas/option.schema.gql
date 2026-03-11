@@ -48,6 +48,7 @@ input UpdateOptionInput {
 
 input OptionFilter {
   id: IdFilterInput
+  questionId: IdFilterInput
   position: IntFilterInput
   label: StringFilterInput
   withArgs: BooleanFilterInput
