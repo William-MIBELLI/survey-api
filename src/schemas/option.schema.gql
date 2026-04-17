@@ -36,7 +36,7 @@ input CreateOptionInput {
   position: Int! @constraint(exclusiveMin: 0)
   label: String! @constraint(minLength: 2, maxLength: 255)
   withArgs: Boolean!
-  questionId: UUID! 
+  optionId: UUID 
 }
 
 input CreateOptionWithQuestionInput {
