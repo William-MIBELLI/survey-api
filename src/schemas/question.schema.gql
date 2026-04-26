@@ -62,7 +62,8 @@ input UpdateQuestionInput {
   isMandatory: Boolean
   dependsOn: UUID 
   type: QuestionType
-  options: [CreateOptionInput!]
+  options: [OptionForUpdateQuestionInput!]
+  deletedOptionIds: [UUID!]
 }
 
 input DeleteQuestionInput {

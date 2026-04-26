@@ -1,15 +1,10 @@
 import { composeResolvers } from "@graphql-tools/resolvers-composition";
 import OptionEntity from "entities/option.entity";
-import QuestionEntity from "entities/question.entity";
 import {
   AnswersFilterInput,
-  DeleteResponse,
-  MutationCreateOptionArgs,
-  MutationUpdateOptionArgs,
-  QueryOptionsArgs,
-  QuestionType,
+  DeleteResponse, MutationUpdateOptionArgs,
+  QueryOptionsArgs
 } from "generated/graphql";
-import { GraphQLError } from "graphql";
 import { TConnection } from "interfaces/generic.interface";
 import { MyContext, ResolverWrapper } from "interfaces/graphql.interface";
 import { appDataSource } from "lib/datasource";
@@ -34,16 +29,16 @@ const optionResolver = {
     },
   },
   Mutation: {
-    createOption: async (
-      _: any,
-      data: MutationCreateOptionArgs,
-      { services: { optionService }, preload }: MyContext<QuestionEntity>,
-    ): Promise<OptionEntity> => {
-      return await optionService.createOption({
-        entity: data.args,
-        question: preload?.entity!,
-      });
-    },
+    // createOption: async (
+    //   _: any,
+    //   data: MutationCreateOptionArgs,
+    //   { services: { optionService }, preload }: MyContext<QuestionEntity>,
+    // ): Promise<OptionEntity> => {
+    //   return await optionService.createOption({
+    //     entity: data.args,
+    //     question: preload?.entity!,
+    //   });
+    // },
     updateOption: async (
       _: any,
       data: MutationUpdateOptionArgs,
@@ -87,16 +82,19 @@ const optionResolver = {
   },
 };
 
-const isOptionIsForUserQuestion =
-  (): ResolverWrapper<MutationCreateOptionArgs> =>
-  (next) =>
-  async (source, data, context, info) => {
-    const question = await context.services.questionService.checkQuestionIsFromUser(
-      data.args.questionId,
-      context.user?.id!,
-    );
-    return next(source, data, { ...context, preload: { entity: question } }, info);
-  };
+// INUTILE CAR ON NE CREE JAMAIS D'OPTIONS PAR LE RESOLVER
+// ON PASSE DIRECTEMENT PAR LE SERVICE VIA LE RESOLVER CreateQuestion
+
+// const isOptionIsForUserQuestion =
+//   (): ResolverWrapper<MutationCreateOptionArgs> =>
+//   (next) =>
+//   async (source, data, context, info) => {
+//     const question = await context.services.questionService.checkQuestionIsFromUser(
+//       data.args.questionId,
+//       context.user?.id!,
+//     );
+//     return next(source, data, { ...context, preload: { entity: question } }, info);
+//   };
 
 const isOptionFromUser =
   (): ResolverWrapper<MutationUpdateOptionArgs> =>
@@ -111,7 +109,7 @@ const isOptionFromUser =
 
 const compositionResolver = {
   "Mutation.!createOption": [isAuthenticated(), isOptionFromUser()],
-  "Mutation.createOption": [isAuthenticated(), isOptionIsForUserQuestion()],
+  // "Mutation.createOption": [isAuthenticated(), isOptionIsForUserQuestion()],
 };
 
 export default composeResolvers(optionResolver, compositionResolver);

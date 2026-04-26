@@ -27,27 +27,27 @@ type Query {
 }
 
 type Mutation {
-  createOption(args: CreateOptionInput!): Option!
+  # createOption(args: CreateOptionInput!): Option!
   deleteOption(id: UUID!): DeleteResponse!
   updateOption(args: UpdateOptionInput!): Option!
 }
 
-input CreateOptionInput {
-  position: Int! @constraint(exclusiveMin: 0)
+input OptionForUpdateQuestionInput {
+  position: Int! @constraint(min: 0)
   label: String! @constraint(minLength: 2, maxLength: 255)
   withArgs: Boolean!
   optionId: UUID 
 }
 
 input CreateOptionWithQuestionInput {
-  position: Int! @constraint(exclusiveMin: 0)
+  position: Int! @constraint(min: 0)
   label: String! @constraint(minLength: 2, maxLength: 255)
   withArgs: Boolean!
 }
 
 input UpdateOptionInput {
   id: UUID! 
-  position: Int @constraint(exclusiveMin: 0)
+  position: Int @constraint(min: 0)
   label: String @constraint(minLength: 2, maxLength: 255)
   withArgs: Boolean
 }

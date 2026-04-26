@@ -9,18 +9,19 @@ export default class QuestionService extends GenericService<QuestionEntity> {
     super(repo);
   }
 
-  public async updateQuestion(args: UpdateQuestionInput): Promise<QuestionEntity> {
-    const question = await this.findById(args.id);
-    if (!question) {
-      throw new GraphQLError("No question found.");
-    }
+  public async updateQuestion(question: QuestionEntity, args: UpdateQuestionInput): Promise<QuestionEntity> {
+    // const question = await this.findById(args.id);
+    // if (!question) {
+    //   throw new GraphQLError("No question found.");
+    // }
     const { options, ...rest } = args;
-
+    console.log("REST : ", rest);
     //UPDATE DE LA QUESTION
     const updatedQuestion = this.updateOne(question, rest);
 
     //GESTION DES OPTIONS
     if (args.options) {
+      
     }
     return updatedQuestion;
   }

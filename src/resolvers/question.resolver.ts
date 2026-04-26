@@ -40,29 +40,41 @@ const questionResolver = {
       data: MutationCreateQuestionArgs,
       { services: { questionService, optionService } }: MyContext,
     ): Promise<QuestionEntity> => {
-      const { options, ...rest } = data.args
+      const { options, ...rest } = data.args;
       const createdQuestion = await questionService.createOne(rest);
       if (options) {
-        const createdOptions = await Promise.all(options.map(o => {
-          return optionService.createOption({ entity: o, question: createdQuestion})
-        }))
-        return {...createdQuestion, options: createdOptions}
+        const createdOptions = await Promise.all(
+          options.map((o) => {
+            return optionService.createOption({ entity: o, question: createdQuestion });
+          }),
+        );
+        return { ...createdQuestion, options: createdOptions };
       }
-      return createdQuestion
+      return createdQuestion;
     },
     updateQuestion: async (
       _: any,
       data: MutationUpdateQuestionArgs,
-      { services: { questionService }, preload }: MyContext<QuestionEntity>,
+      {
+        services: { questionService, optionService },
+        preload,
+      }: MyContext<QuestionEntity>,
     ): Promise<QuestionEntity> => {
-      return await questionService.updateOne(preload?.entity!, data.args);
+      const { deletedOptionIds, options, id } = data.args;
+      console.log('DATA ARGS DANS LE RESOLVER : ', data.args);
+      const res = await optionService.manageOptionsFromUpdatedQuestion(
+        options,
+        deletedOptionIds,
+        preload?.entity!
+      );
+      return await questionService.updateQuestion(preload?.entity!, data.args);
     },
     deleteQuestion: async (
       _: any,
       args: MutationDeleteQuestionArgs,
       { services: { questionService }, preload }: MyContext<QuestionEntity>,
     ): Promise<DeleteResponse> => {
-      console.log('ID DANS LE RESOLVER : ', args)
+      console.log("ID DANS LE RESOLVER : ", args);
       const isDeleted = await questionService.deleteOne(preload?.entity!);
       return {
         success: isDeleted,
@@ -92,9 +104,9 @@ const questionResolver = {
       const options = await optionService.findByProperties({
         questionId: {
           equals: parent.id,
-        },
+        }
       });
-      return options;
+      return options.sort((a,b) => a.position - b.position);
     },
     answers: async (
       parent: QuestionEntity,
@@ -126,13 +138,13 @@ const isQuestionForUserSurvey =
 const isQuestionFromUser =
   (): ResolverWrapper<MutationUpdateQuestionArgs | MutationDeleteQuestionArgs> =>
   (next) =>
-    async (root, args, context, info) => {
-      console.log("ARGS DANS LE MIDDLEWARE : ", args)
+  async (root, args, context, info) => {
+    // console.log("ARGS DANS LE MIDDLEWARE : ", args)
     const question = await context.services.questionService.checkQuestionIsFromUser(
       args.args.id,
       context?.user?.id!,
     );
-    console.log('QUESTION DANS LE MIDDLEWARE : ', question)
+    // console.log('QUESTION DANS LE MIDDLEWARE : ', question)
     return next(root, args, { ...context, preload: { entity: question } }, info);
   };
 
